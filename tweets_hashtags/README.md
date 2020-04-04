@@ -22,6 +22,6 @@ To run this script, you'll need python 3.7 and the following libraries:
 
 # Running the application
 
-Clone this repository to your computer. Finally, within the cloned folder, type the following in the command line to run the script locally:
-
+`cd src/social_distancing/tweets_hashtags `
+`source ../env_tweepy/bin/activate`
 `python3 stream.py`
