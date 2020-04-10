@@ -1,0 +1,7 @@
+env_tweepy/
+.DS_Store
+tweets_hashtags/data/
+tweets_hashtags/keys_tweepy.py
+alldata/
+.vscode/
+**/.ipynb_checkpoints
