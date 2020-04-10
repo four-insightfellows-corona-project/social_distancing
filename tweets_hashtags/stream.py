@@ -9,10 +9,13 @@ from requests.exceptions import Timeout, ConnectionError
 from requests.packages.urllib3.exceptions import ReadTimeoutError
 
 # Add your Twitter API credentials
-consumer_key = "consumer_key"
-consumer_secret = "consumer_secret"
-access_key = "access_key"
-access_secret = "access_secret"
+# keys_tweepy.py is a file of the form (which should be added to .gitignore locally)
+# consumer_key = "***"
+# consumer_secret = "***"
+# access_key = "***-***"
+# access_secret = "***"
+
+from keys_tweepy import *
 
 # Handling authentication with Twitter
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -24,15 +27,13 @@ api = tweepy.API(auth)
 # Setting up the keywords, hashtag or mentions we want to listen
 keywords = ["#prospectpark",
             "#brooklyn",
-            "#nyc",
-            "#ny",
             "#nycparks",
             "#prospect_park",
             "#prospectparkzoo",
-            "#flatbush"]
+            "prospectparknyc"]
 
 # Set the name for CSV file  where the tweets will be saved
-filename = "tweets_post"
+filename = "tweets_post11"
 
 
 # We need to implement StreamListener to use Tweepy to listen to Twitter
@@ -84,7 +85,7 @@ class StreamListener(tweepy.StreamListener):
                 # Saves the tweet information in a new row of the CSV file
                 writer.writerow([tweet, keywords_strings, timeTweet,
                                 user, source, tweetId, tweetUrl])
-
+                print("adding tweet", timeTweet)
         except Exception as e:
             print('Encountered Exception:', e)
             pass
@@ -100,9 +101,10 @@ def work():
         # Add a header row to the CSV
         writer.writerow(["Tweet", "Matched Keywords", "Date", "User",
                         "Source", "Tweet ID", "Tweet URL"])
-
+        print("head done")
         # Initializing the twitter streap Stream
         try:
+            print("checking authentification")
             streamingAPI = tweepy.streaming.Stream(auth=api.auth, listener=StreamListener())
             streamingAPI.filter(track=keywords)
 
