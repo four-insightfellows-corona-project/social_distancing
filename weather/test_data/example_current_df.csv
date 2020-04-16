@@ -1,0 +1,2 @@
+,park_name,reception_time,reference_time,sunrise_time,sunset_time,clouds,rain_1h,snow_1h,wind_speed,wind_deg,humidity,press,temp,temp_feels,temp_max,temp_min,status,detailed_status
+0,Prospect Park,1585989513,1585989513,1585996413,1586042608,90,0.25,0,5.1,40,93,1016,46.4,38.7,48.2,44.6,Rain,light rain
