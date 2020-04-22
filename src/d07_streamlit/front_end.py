@@ -13,7 +13,19 @@ st.title("Prospect Park Social Distancing Project")
 
 ## ANSWER
 st.header("Is it safe to visit Prospect Park right now?")
-ans = "**NO.**"
+f = open("../d05_reporting/prediction_for_most_recent_timebin","r")
+num_ans = f.read()
+
+try:
+    if int(num_ans) == 0:
+        ans = "**YES.**"
+    elif int(num_ans) == 1:
+        ans = "**NO.**"
+    else:
+        ans = "**NOT SURE.**"
+except:
+    ans = "**NOT SURE.**"
+    
 st.markdown(ans)
 
 
