@@ -29,6 +29,11 @@ except:
 st.markdown(ans)
 
 
+## SURVEY
+st.header("Survey")
+st.markdown('[_Click Here_](https://docs.google.com/forms/d/e/1FAIpQLSdlczlOJ0s5eM01-HqQhekwlQlbihiW8yqPtsVQbQqNsyB-JQ/viewform) _to help us collect more data!_')
+
+
 ## DATA
 st.header("Data")
 
@@ -65,14 +70,3 @@ if validation:
 everything = st.checkbox("SHOW ME EVERYTHING")
 if everything:
     show(everything,'')
-
-
-## SURVEY
-st.header("Survey")
-st.markdown("_Help Us Collect More Data!_")
-import webbrowser
-url = 'https://docs.google.com/forms/d/e/1FAIpQLSdlczlOJ0s5eM01-HqQhekwlQlbihiW8yqPtsVQbQqNsyB-JQ/viewform'
-
-if st.button('Click Here'):
-    webbrowser.open_new_tab(url)
-
