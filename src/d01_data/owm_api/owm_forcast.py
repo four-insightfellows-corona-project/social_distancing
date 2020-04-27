@@ -130,7 +130,7 @@ def main():
 
     weather_log = weather_log.append(weather_df, ignore_index=True)
 
-    weather_log.to_csv(log_path)
+    weather_log.to_csv(log_path, index_label='id')
 
 
 if __name__ == "__main__":
