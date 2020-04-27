@@ -27,16 +27,16 @@ from PIL import Image
 
 try:
     if int(num_ans) == 0:
-        ans = "According to our analysis, it is **SAFE** to visit Prospect Park right now."
+        ans = "**SAFE** to work out on the main path."
         image = Image.open('thumbsup.png')
     elif int(num_ans) == 1:
-        ans = "According to our analysis, it is **NOT SAFE** to visit Prospect Park right now."
+        ans = "**NOT SAFE** to work out on the main path."
         image = Image.open('thumbsdown.png')
     else:
-        ans = "Our analysis is **UNCLEAR** on whether it is safe to visit Prospect Park right now."
+        ans = "**UNCLEAR** whether it is safe to work out on the main path."
         image = Image.open('shrug.png')
 except:
-    ans = "Our analysis is **UNCLEAR** on whether it is safe to visit Prospect Park right now."
+    ans = "**UNCLEAR** whether it is safe to work out on the main path."
     image = Image.open('shrug.png')
     
 st.markdown(ans)
@@ -45,23 +45,37 @@ st.image(image)
 
 
 ## HELP US IMPROVE
-st.header("Help Us Improve!")
+# Store response submission timestamp as 'time'
+# store corrected label as 'safe'
+# Store feedback as 'feedback'
 
-agree = st.checkbox('Click here to answer a few questions that will improve our predictions.')
+st.header("Correct Us if We're Wrong!")
 
-if agree:
-    in_park = st.radio('Are you in Prospect Park right now?', ('Yes', 'No'), index=1)
-    if in_park == "Yes":
-        activity = st.radio('What activity are you doing?', ('Walking', 'Running','Cycling','Other', 'no answer'), index=4)
-        main_track = st.radio('Is it EASY or DIFFICULT to practice social distancing ON the MAIN TRACK of Prospect Park?', ('easy', 'difficult', 'can\'t tell'),index=2)
-        not_main_track = st.radio('Is it EASY or DIFFICULT to practice social distancing APART FROM the MAIN TRACK of Prospect Park?', ('easy', 'difficult', 'can\'t tell'),index=2)
+correct = st.radio('Is our recommendation CORRECT?', ('Yes.', 'No.', 'Not sure.'),index=0)
+user_input = st.text_input('Feedback / Comments?', value='')
+submit = st.button('Submit My Responses')
+    
+if submit:
+    import datetime as dt
+    from pandas import to_datetime
+    from numpy import NaN
+    time = to_datetime(dt.datetime.now()) 
 
-    elif in_park == "No":
-        activity = st.radio('What activity were you doing?', ('Walking', 'Running','Cycling','Other', 'no answer'), index=4)
-        day = st.date_input("What day were you in Prospect Park?")
-        time = st.time_input('What time were you in Prospect Park? (24h clock)')
-        main_track = st.radio('Was it EASY or DIFFICULT to practice social distancing ON the MAIN TRACK of Prospect Park?', ('easy', 'difficult', 'can\'t tell'),index=2)
-        not_main_track = st.radio('Was it EASY or DIFFICULT to practice social distancing APART FROM the MAIN TRACK of Prospect Park?', ('easy', 'difficult', 'can\'t tell'),index=2)
+    feedback = user_input
+
+    if correct == 'Yes, correct.':
+        try:
+            safe = int(num_ans)
+        except: 
+            safe = NaN
+            
+    elif correct == 'No, incorrect.' :
+        try:
+            safe = 1-int(num_ans)
+        except:
+            safe = NaN
+    else: 
+        safe = NaN
 
 
 ## SURVEY
