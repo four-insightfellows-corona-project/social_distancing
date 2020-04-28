@@ -15,11 +15,19 @@ st.title("Prospect Park Social Distancing Project")
 st.header("DISCLAIMER")
 st.markdown("This project is currently in a testing phase. Please take our recommendation with a grain of salt. We invite you to help us improve our accuracy by answering some questions below.")
 
+# CHOOSE MODEL
+st.header("Choose Model")
+model = st.radio('How should we calculate our recommendation?', ('logistic regression', 'gradient boosted model'),index=0)
+
+if model == 'logistic regression':
+    model = 'logistic'
+else: 
+    model = 'xgb'
+
 ## RECOMMENDATION
 st.header("Our Recommendation")
-
 # Obtain the verdict from the most recently updated model
-f = open("../d05_reporting/prediction_for_most_recent_timebin","r")
+f = open("../d05_reporting/prediction_"+model,"r")
 num_ans = f.read()
 
 # Find the right text answer and thumbs-up or thumbs-down sign
@@ -44,7 +52,7 @@ st.image(image)
 
 
 
-## HELP US IMPROVE
+## CORRECT US IF WE'RE WRONG
 # Store response submission timestamp as 'time'
 # store corrected label as 'safe'
 # Store feedback as 'feedback'
@@ -114,7 +122,10 @@ if geotweets:
 
 validation = st.checkbox("model validation")
 if validation:
-    show(validation,'validation')
+    show(validation,'validation_'+model)
+    f = open("../d05_reporting/validation_metrics_"+model,'r')
+    metrics = f.read()
+    st.text(metrics)
 
 everything = st.checkbox("SHOW ME EVERYTHING")
 if everything:
