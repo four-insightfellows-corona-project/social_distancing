@@ -120,10 +120,10 @@ geotweets = st.checkbox("geotweets")
 if geotweets:
     show(geotweets,'geotweets')
 
-validation = st.checkbox("model validation")
-if validation:
-    show(validation,'validation_'+model)
-    f = open("../d05_reporting/validation_metrics_"+model,'r')
+modeling = st.checkbox("model details")
+if modeling:
+    show(modeling,'modeling_'+model)
+    f = open("../d05_reporting/modeling_metrics_"+model,'r')
     metrics = f.read()
     st.text(metrics)
 
