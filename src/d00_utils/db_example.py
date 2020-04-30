@@ -31,9 +31,11 @@ def main():
     ins_feedback = 'Test INSERT please ignore'
 
     insert_user_feedback(
-        table='table2',
+        table='feedback_test',
         values=(ins_time, ins_rec, ins_user_rec, ins_feedback),
-        ini_section='postgresql-local')
+        ini_section='non-social-parks-db')
+    
+    # print(db_to_df(table='feedback_test', ini_section='non-social-parks-db'))
 
 
 if __name__ == "__main__":
