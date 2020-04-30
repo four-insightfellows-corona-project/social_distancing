@@ -64,26 +64,38 @@ user_input = st.text_input('Feedback / Comments?', value='')
 submit = st.button('Submit My Responses')
     
 if submit:
+    import os
+    import sys
+    import re
     import datetime as dt
-    from pandas import to_datetime
-    from numpy import NaN
-    time = to_datetime(dt.datetime.now()) 
-
-    feedback = user_input
-
-    if correct == 'Yes, correct.':
-        try:
-            safe = int(num_ans)
-        except: 
-            safe = NaN
-            
-    elif correct == 'No, incorrect.' :
-        try:
-            safe = 1-int(num_ans)
-        except:
-            safe = NaN
-    else: 
-        safe = NaN
+        
+    # Create variables to store:
+    
+    # Time response was entered
+    ins_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Current model recommendation; dtype = Boolean
+    ins_rec = num_ans == 0
+    
+    # User accuracy selection; dtype = Text
+    ins_user_rec = correct
+    
+    # User feedback; dtype = Text
+    ins_feedback = re.sub('\'','', user_input)
+    
+    # Send feedback to back end model
+    src_dir = os.path.join(os.getcwd(), '..')
+    root_dir = os.path.join(os.getcwd(), '..', '..')
+    sys.path.append(root_dir)
+    sys.path.append(src_dir)
+    
+        
+    from d00_utils.db_funcs import insert_user_feedback
+    
+    insert_user_feedback(
+        table='feedback_test',
+        values=(ins_time, ins_rec, ins_user_rec, ins_feedback),
+        ini_section='non-social-parks-db')
 
 
 ## SURVEY
