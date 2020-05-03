@@ -47,11 +47,12 @@ def insert_user_feedback(
         ini_section='postgresql-local'):
     ''' Insert user feedback into PostgresQL db
     '''
-    sql = '''
-    INSERT INTO {}({}, {}, {}, {})
+    sql_ins ='INSERT INTO {}({}, {}, {}, {})'.format(table, *columns)
+    sql = sql_ins + '''
     VALUES
-          {}
-    '''.format(table, *columns, values)
+          (%s, %s, %s, %s)
+    '''
+    print(sql)
 
     conn = None
     try:
@@ -66,7 +67,7 @@ def insert_user_feedback(
         cur = conn.cursor()
 
         # execute a statement
-        cur.execute(sql)
+        cur.execute(sql, values)
         conn.commit()
 
         # close the communication with the PostgreSQL
