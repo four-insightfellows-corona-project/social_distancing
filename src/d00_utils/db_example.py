@@ -32,13 +32,20 @@ def main():
 
     ins_newcol = 'ajksdh'
 
+<<<<<<< HEAD
     insert_user_feedback(
         table='feedback_test',
         columns=('rec_time', 'rec', 'user_rec', 'feedback'),
         values=(ins_time, ins_rec, ins_user_rec, ins_feedback),
         ini_section='non-social-parks-db')
+=======
+    #insert_user_feedback(
+    #    table='feedback_test',
+    #    values=(ins_time, ins_rec, ins_user_rec, ins_feedback),
+    #    ini_section='non-social-parks-db')
+>>>>>>> upstream/master
 
-    # print(db_to_df(table='feedback_test', ini_section='non-social-parks-db'))
+    print(db_to_df(table='feedback_test', ini_section='non-social-parks-db'))
 
 
 if __name__ == "__main__":
