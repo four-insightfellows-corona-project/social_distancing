@@ -7,6 +7,7 @@ Created on Wed Apr 22 11:34:30 2020
 """
 import streamlit as st
 import datetime as dt
+from pytz import timezone
 
 ## TITLE
 st.title("Prospect Park Social Distancing Project")
@@ -57,7 +58,7 @@ def display_recommendation(model):
     st.markdown(ans)
     st.image(image)
     st.markdown("Please Note:  \n 1. This recommendation is for " 
-                + dt.datetime.now().strftime("%-I:%M %p") + 
+                + dt.datetime.now(timezone('US/Eastern')).strftime("%-I:%M %p") + 
                 ". Please refresh the page for an updated recommendation.  \n 2. Our calculations are intended to produce reliable recommendations for times between 7am and 8pm.")
     return num_ans
 
@@ -85,7 +86,7 @@ if submit:
     # Create variables to store:
     
     # Time response was entered
-    ins_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ins_time = dt.datetime.now(timezone('US/Eastern')).strftime("%Y-%m-%d %H:%M:%S")
     
     # Current model recommendation; dtype = Boolean
     ins_rec = num_ans == 0
