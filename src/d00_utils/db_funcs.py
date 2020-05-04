@@ -46,15 +46,18 @@ def insert_user_feedback(
         values=('2020-04-29 12:20', 'True', 'Default', 'Default'),
         ini_section='postgresql-local'):
     ''' Insert user feedback into PostgresQL db
+        -- can't  handle null values as-is
     '''
-    sql_ins ='INSERT INTO {}({}, {}, {}, {})'.format(table, *columns)
+    cols = (len(columns) - 1) * '{}, '
+    vals = '(' + (len(columns) - 1) * '%s, ' + '%s)'
+
+    sql_ins =('INSERT INTO {}(' + cols + ' {})').format(table, *columns)
     sql = sql_ins + '''
     VALUES
-          (%s, %s, %s, %s)
-    '''
-    print(sql)
+          ''' + vals
 
     conn = None
+
     try:
         # read connection parameters
         params = config(section=ini_section)
