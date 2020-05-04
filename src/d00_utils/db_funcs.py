@@ -118,7 +118,7 @@ def return_query(sql='SELECT * from table', ini_section='postgresql-local'):
             print('Database connection closed.')
 
 
-def db_to_df(table='table', ini_section='postgresql-local'):
+def db_to_df(sql='SELECT * FROM table;', ini_section='postgresql-local'):
     conn = None
     try:
         params = config(section=ini_section)
@@ -126,7 +126,6 @@ def db_to_df(table='table', ini_section='postgresql-local'):
         print('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
 
-        sql = 'SELECT * from {}'.format(table)
         df = pd.io.sql.read_sql_query(sql, conn)
 
     except (Exception, psycopg2.DatabaseError) as error:
