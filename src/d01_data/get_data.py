@@ -21,7 +21,8 @@ from d00_utils.db_funcs import config
 
 
 def current():
-    '''
+    ''' Pulls the last row of data from the popular times and weather db's.
+        Saves the data to csv's & returns the df's.
     '''
     conn = None
 

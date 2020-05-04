@@ -21,7 +21,7 @@ from d00_utils.db_funcs import insert_user_feedback
 from conf.auth import google_api
 
 def pop_time():
-    '''
+    ''' Saves the popular times data to the db
     '''
     tz_offset = -14400
 
