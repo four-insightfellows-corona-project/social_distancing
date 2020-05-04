@@ -46,15 +46,18 @@ def insert_user_feedback(
         values=('2020-04-29 12:20', 'True', 'Default', 'Default'),
         ini_section='postgresql-local'):
     ''' Insert user feedback into PostgresQL db
+        -- can't  handle null values as-is
     '''
-    sql_ins ='INSERT INTO {}({}, {}, {}, {})'.format(table, *columns)
+    cols = (len(columns) - 1) * '{}, '
+    vals = '(' + (len(columns) - 1) * '%s, ' + '%s)'
+
+    sql_ins =('INSERT INTO {}(' + cols + ' {})').format(table, *columns)
     sql = sql_ins + '''
     VALUES
-          (%s, %s, %s, %s)
-    '''
-    print(sql)
+          ''' + vals
 
     conn = None
+
     try:
         # read connection parameters
         params = config(section=ini_section)
@@ -115,7 +118,7 @@ def return_query(sql='SELECT * from table', ini_section='postgresql-local'):
             print('Database connection closed.')
 
 
-def db_to_df(table='table', ini_section='postgresql-local'):
+def db_to_df(sql='SELECT * FROM table;', ini_section='postgresql-local'):
     conn = None
     try:
         params = config(section=ini_section)
@@ -123,7 +126,6 @@ def db_to_df(table='table', ini_section='postgresql-local'):
         print('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
 
-        sql = 'SELECT * from {}'.format(table)
         df = pd.io.sql.read_sql_query(sql, conn)
 
     except (Exception, psycopg2.DatabaseError) as error:
