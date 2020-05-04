@@ -6,6 +6,7 @@ Created on Wed Apr 22 11:34:30 2020
 @author: eric
 """
 import streamlit as st
+import datetime as dt
 
 ## TITLE
 st.title("Prospect Park Social Distancing Project")
@@ -15,41 +16,54 @@ st.title("Prospect Park Social Distancing Project")
 st.header("DISCLAIMER")
 st.markdown("This project is currently in a testing phase. Please take our recommendation with a grain of salt. We invite you to help us improve our accuracy by answering some questions below.")
 
-# CHOOSE MODEL
-st.header("Choose Model")
-model = st.radio('How should we calculate our recommendation?', ('logistic regression', 'gradient boosted model'),index=0)
 
-if model == 'logistic regression':
-    model = 'logistic'
-else: 
-    model = 'xgb'
+## DAYS SINCE LOCKDOWN
+#st.header("Days Since Lockdown Began")
+#from pandas import to_datetime
+#lockdown_days = (dt.datetime.now() - to_datetime("03-23-2020")).days
+#st.markdown(str(lockdown_days))
+
 
 ## RECOMMENDATION
+
 st.header("Our Recommendation")
-# Obtain the verdict from the most recently updated model
-f = open("../d05_reporting/prediction_"+model,"r")
-num_ans = f.read()
 
-# Find the right text answer and thumbs-up or thumbs-down sign
-from PIL import Image
-
-try:
-    if int(num_ans) == 0:
-        ans = "**SAFE** to work out on the main path."
-        image = Image.open('thumbsup.png')
-    elif int(num_ans) == 1:
-        ans = "**NOT SAFE** to work out on the main path."
-        image = Image.open('thumbsdown.png')
-    else:
+# Function that displays recommendation
+def display_recommendation(model):
+    # Obtain the verdict from the most recently updated model
+    f = open("../d05_reporting/prediction_"+model,"r")
+    
+    # Define num_ans, a (string representation) of the numerical verdict
+    # 0 = safe, 1 = unsafe
+    num_ans = f.read()
+    
+    # Find the right text answer and thumbs-up or thumbs-down sign
+    from PIL import Image
+    
+    try:
+        if int(num_ans) == 0:
+            ans = "**SAFE** to work out on the main path."
+            image = Image.open('thumbsup.png')
+        elif int(num_ans) == 1:
+            ans = "**NOT SAFE** to work out on the main path."
+            image = Image.open('thumbsdown.png')
+        else:
+            ans = "**UNCLEAR** whether it is safe to work out on the main path."
+            image = Image.open('shrug.png')
+    except:
         ans = "**UNCLEAR** whether it is safe to work out on the main path."
         image = Image.open('shrug.png')
-except:
-    ans = "**UNCLEAR** whether it is safe to work out on the main path."
-    image = Image.open('shrug.png')
-    
-st.markdown(ans)
-st.image(image)
+        
+    st.markdown(ans)
+    st.image(image)
+    st.markdown("Please Note:  \n 1. This recommendation is for " 
+                + dt.datetime.now().strftime("%-I:%M %p") + 
+                ". Please refresh the page for an updated recommendation.  \n 2. Our calculations are intended to produce reliable recommendations for times between 7am and 8pm.")
+    return num_ans
 
+# Set model = logistic for final recommendation & display
+model='logistic'
+num_ans = display_recommendation(model = model)
 
 
 ## CORRECT US IF WE'RE WRONG
@@ -67,7 +81,6 @@ if submit:
     import os
     import sys
     import re
-    import datetime as dt
         
     # Create variables to store:
     
@@ -96,6 +109,8 @@ if submit:
         table='feedback_test',
         values=(ins_time, ins_rec, ins_user_rec, ins_feedback),
         ini_section='non-social-parks-db')
+    
+    st.markdown("*Thank you for submitting your response! We will incorporate your feedback.*")
 
 
 ## SURVEY
@@ -134,6 +149,24 @@ if geotweets:
 
 modeling = st.checkbox("model details")
 if modeling:
+    
+    # CHOOSE MODEL
+    #st.header("Choose Model")
+    
+    # Reset model to chosen model
+    #model = st.radio('Which model would you like to explore?', ('logistic regression','random forest','gradient boosted model'),index=0)
+    
+    #if model == 'logistic regression':
+    #    model = 'logistic'
+    #elif model == 'random forest': 
+    #    model = 'rf'
+    #else: 
+    #    model = 'xgb'
+        
+    # Display model results
+    #display_recommendation(model)
+    
+    # Display other model info
     show(modeling,'modeling_'+model)
     f = open("../d05_reporting/modeling_metrics_"+model,'r')
     metrics = f.read()
@@ -142,3 +175,10 @@ if modeling:
 everything = st.checkbox("SHOW ME EVERYTHING")
 if everything:
     show(everything,'')
+
+
+## RERUN FRONT END EVERY 15MIN AS LONG AS BROWSER IS OPEN
+#import time
+#from d00_utils.st_rerun import rerun
+#time.sleep(900)
+#rerun()
