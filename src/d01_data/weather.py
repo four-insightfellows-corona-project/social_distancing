@@ -92,8 +92,8 @@ def weather_current():
 
     insert_user_feedback(
         table='weather_test',
-        columns=weather_columns,
-        values=weather_values,
+        columns=commit_cols,
+        values=commit_vals,
         ini_section='non-social-parks-db'
     )
 
