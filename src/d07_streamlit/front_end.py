@@ -6,6 +6,7 @@ Created on Wed Apr 22 11:34:30 2020
 @author: eric
 """
 import streamlit as st
+import datetime as dt
 
 ## TITLE
 st.title("Prospect Park Social Distancing Project")
@@ -18,7 +19,6 @@ st.markdown("This project is currently in a testing phase. Please take our recom
 
 ## DAYS SINCE LOCKDOWN
 #st.header("Days Since Lockdown Began")
-#import datetime as dt
 #from pandas import to_datetime
 #lockdown_days = (dt.datetime.now() - to_datetime("03-23-2020")).days
 #st.markdown(str(lockdown_days))
@@ -56,7 +56,9 @@ def display_recommendation(model):
         
     st.markdown(ans)
     st.image(image)
-    st.markdown("Please note: our calculations are intended to produce reliable recommendations for times between 7am and 8pm.")
+    st.markdown("Please Note:  \n 1. This recommendation is for " 
+                + dt.datetime.now().strftime("%-I:%M %p") + 
+                ". Please refresh the page for an updated recommendation.  \n 2. Our calculations are intended to produce reliable recommendations for times between 7am and 8pm.")
     return num_ans
 
 # Set model = logistic for final recommendation & display
@@ -79,7 +81,6 @@ if submit:
     import os
     import sys
     import re
-    import datetime as dt
         
     # Create variables to store:
     
