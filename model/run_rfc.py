@@ -1,20 +1,34 @@
 import pickle
 from rawdata_convert import load_newest_observation
-
-# path_to_model = os.getcwd()[:-9] + 'Model/'
-
-# load data for prediction:
-
-data = load_newest_observation()
-
-# load pkl file
-filename = 'rfc_HW.pkl'
-loaded_model = pickle.load(open(filename, 'rb'))
+from d01_data.get_data import current
+import boto3
 
 
-# Create prediction
+def run_prediction():
+    # load data for prediction:
+    try:
+        data = load_newest_observation()
+    except:
+        print("could not read data")
 
-current_pred = rfc.predict(data)
+    # load pkl file
+    filename = 'rfc_HW.pkl'
+    loaded_model = pickle.load(open(filename, 'rb'))
+
+    # Create prediction
+    # (last row of data)
+
+    test_row = data.iloc[-1].values
+    test_row = test_row.reshape(1, -1)
+    pred_test = loaded_model.predict(test_row)
+    output_content = pred_test[0]
+
+    # Write prediction
+
+    s3 = boto3.resource('s3')
+    object = s3.Object(bucket_name, 'output.txt')
+    object.put(Body=output_content)
+
 
 
 
