@@ -32,24 +32,24 @@ def display_recommendation(model):
     f = open("../d05_reporting/prediction_"+model,"r")
     
     # Define num_ans, a (string representation) of the numerical verdict
-    # 0 = safe, 1 = unsafe
+    # 0.0 = safe, 1.0 = unsafe
     num_ans = f.read()
     
     # Find the right text answer and thumbs-up or thumbs-down sign
     from PIL import Image
     
     try:
-        if int(num_ans) == 0:
+        if float(num_ans) == 0.0:
             ans = "**SAFE** to exercise on the main path."
             image = Image.open('thumbsup.png')
-        elif int(num_ans) == 1:
+        elif float(num_ans) == 1.0:
             ans = "**NOT SAFE** to exercise on the main path."
             image = Image.open('thumbsdown.png')
         else:
             ans = "**UNCLEAR** whether it is safe to exercise on the main path."
             image = Image.open('shrug.png')
     except:
-        ans = "**UNCLEAR** whether it is safe to work out on the main path."
+        ans = "**UNCLEAR** whether it is safe to exercise on the main path."
         image = Image.open('shrug.png')
         
     st.markdown(ans)
@@ -90,7 +90,7 @@ if submit:
     ins_time = dt.datetime.now(timezone('US/Eastern')).strftime("%Y-%m-%d %H:%M:%S")
     
     # Current model recommendation; dtype = Boolean
-    ins_rec = num_ans == 0
+    ins_rec = num_ans == 0.0
     
     # User accuracy selection; dtype = Text
     ins_user_rec = correct
