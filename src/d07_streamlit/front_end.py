@@ -66,7 +66,7 @@ def display_recommendation(model):
     return num_ans
 
 # Set model = logistic for final recommendation & display
-model='logistic'
+model='xgb'
 num_ans = display_recommendation(model = model)
 
 
@@ -110,7 +110,7 @@ if submit:
     from d00_utils.db_funcs import insert_user_feedback
     
     insert_user_feedback(
-        table='feedback_test',
+        table='feedback',
         values=(ins_time, ins_rec, ins_user_rec, ins_feedback),
         ini_section='non-social-parks-db')
     
