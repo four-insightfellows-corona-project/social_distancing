@@ -17,7 +17,9 @@ from datetime import datetime, timedelta
 from io import StringIO
 import numpy as np
  
+
 bucket_name = "prospectparkmodel"
+
 
 
 
@@ -108,3 +110,4 @@ def load_newest_observation():
 
 if __name__ == '__main__':
     load_newest_observation()
+
