@@ -28,12 +28,15 @@ def main():
     ins_user_rec = 'TEST'
 
     # User feedback; dtype = Text
-    ins_feedback = '''CHAR TEST !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~ CHAR TEST'''
+    ins_feedback = '''May 4 CHAR TEST2 !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~ CHAR TEST'''
 
-    #insert_user_feedback(
-    #    table='feedback_test',
-    #    values=(ins_time, ins_rec, ins_user_rec, ins_feedback),
-    #    ini_section='non-social-parks-db')
+    ins_newcol = 'ajksdh'
+
+    insert_user_feedback(
+        table='feedback_test',
+        columns=('rec_time', 'rec', 'user_rec', 'feedback'),
+        values=(ins_time, ins_rec, ins_user_rec, ins_feedback),
+        ini_section='non-social-parks-db')
 
     print(db_to_df(table='feedback_test', ini_section='non-social-parks-db'))
 

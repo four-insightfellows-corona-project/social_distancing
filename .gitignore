@@ -11,6 +11,8 @@ alldata/
 # edwardlk
 auth.py
 database.ini
+current_popularity.csv
+current_weather.csv
 
 # Standard
 
