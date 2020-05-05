@@ -1,7 +1,7 @@
 
 README
 
-Set up a cron job to run every 15 minutes:
+Set up a cron job to run every 5 minutes:
 >> python run_rfc.py
 
 
@@ -14,4 +14,4 @@ sudo service crond start
 
 crontab -e
 
-*/1 * * * * cd /home/ec2-user/social_distancing/model && /home/ec2-user/social_distancing/model/my_app/env/bin/python3 run_rfc.py >> ~/cron_logs/logs 2>&1
+*/5 * * * * cd /home/ec2-user/social_distancing/model && /home/ec2-user/social_distancing/model/my_app/env/bin/python3 run_rfc.py >> ~/cron_logs/logs 2>&1
