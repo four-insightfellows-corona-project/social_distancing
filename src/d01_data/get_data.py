@@ -26,8 +26,8 @@ def current():
     '''
     conn = None
 
-    w_sql = 'SELECT * FROM weather_test ORDER BY ID DESC LIMIT 1;'
-    t_sql = 'SELECT * FROM popular_times_test ORDER BY ID DESC LIMIT 1;'
+    w_sql = 'SELECT * FROM weather ORDER BY ID DESC LIMIT 1;'
+    t_sql = 'SELECT * FROM popular_times ORDER BY ID DESC LIMIT 1;'
 
     try:
         params = config(section='non-social-parks-db')
