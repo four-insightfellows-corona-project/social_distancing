@@ -5,23 +5,21 @@
 # 
 # **steps**:
 # 1. Load the latest populartimes data & weather data into a data frame.
-# 2. Convert time from unix structure to datetime & bin the time into a time_bin (can't directly use the time information as this sometimes affect the 'hour' feature)
+# 2. Convert time from UTC to EST & bin the time into a time_bin (can't directly use the time information as this sometimes affect the 'hour' feature)
 # 3. Create the "status_good, status_maybe, status_bad" features
 # 4. Add the time features
 # 5. Select the relevant features
 
 
+
 import boto3
 import pandas as pd
 from datetime import datetime, timedelta
+import json
 from io import StringIO
 import numpy as np
- 
 
 bucket_name = "prospectparkmodel"
-
-
-
 
 def binMinute(minute):
     '''
@@ -40,73 +38,56 @@ def binMinute(minute):
         newminute = 35
     elif m2q < 4:
         newminute = 50
-    return(newminute)     
-
+    return(newminute)       
 
 
 def load_newest_observation():
-
     ## Step1: Load the latest data into a data frame. 
     # Note that the code below works on populartimes data that Huayi has scrapped, 
     # and need to be editted to reflect how Ed is scraping the weather & the populartimes data. 
-
-    client = boto3.client('s3') #low-level functional API
-
-    resource = boto3.resource('s3') #high-level object-oriented API
-    my_bucket = resource.Bucket(bucket_name) 
-
-    # read in the weather data
-    df = pd.DataFrame()
-    weather_data = client.get_object(Bucket =bucket_name, Key='data/current_weather.csv')['Body']
-    weather_string = weather_data.read().decode('utf-8')
-    df = pd.read_csv(StringIO(weather_string))
-
-    # add "current_popularity"
-    popularity_data = client.get_object(Bucket =bucket_name, Key='data/current_popularity.csv')['Body']
-    popularity_string = popularity_data.read().decode('utf-8')
-    df['current_popularity'] = pd.read_csv(StringIO(popularity_string))['current_pop']
-
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucket_name) # the bucket containing the raw data. 
+    idx = 0
+    for item in bucket.objects.filter(Prefix = "Data/"): # Predix is the path to the file.
+        content = item.get()['Body'].read().decode('utf-8')
+        if len(content):
+            json_content = json.loads(content)['current_popularity']
+            ### + a line to load the weather data
+            timestamp = datetime.strptime(item.key[5:-5], '%m%d%Y_%H%M')
+            data = pd.DataFrame({'current_popularity': json_content, 'datetime': timestamp}, index = [idx])
+            idx +=1
 
     ## Step2: Convert time from UTC to EST & bin the time into a time_bin 
 
-    ## convert unix time to datetime
-    df['datetime'] = datetime.fromtimestamp(df.reception_time)
+    # change time zone
+    data['datetime'] = data['datetime'].dt.tz_localize('UTC').dt.tz_convert('US/Eastern').dt.tz_localize(None)
     # bin the time
-    df['time_bin'] = df['datetime'].apply(lambda x: x.replace(minute = 0, second = 0) + timedelta(minutes=binMinute(x.minute)))
-
-
-    # In[30]:
+    data['time_bin'] = data['datetime'].apply(lambda x: x.replace(minute = 0) + timedelta(minutes=binMinute(x.minute)))
 
 
     ## Step3: good, maybe, bad
     good = ['clear sky','few clouds']
     maybe = ['scattered clouds','mist','light rain','broken clouds']
     bad = ['heavy intensity rain','moderate rain','overcast clouds','thunderstorm with rain','thunderstorm with light rain']
-    df['status_good'] = np.zeros(1)
-    df['status_maybe'] = np.zeros(1)
-    df['status_bad'] = np.zeros(1)
-    df.loc[df.detailed_status.isin(good),'status_good'] =1
-    df.loc[df.detailed_status.isin(maybe),'status_maybe'] =1
-    df.loc[df.detailed_status.isin(bad),'status_bad'] =1
-
-
-    # In[31]:
+    data['status_good'] = np.zeros(1)
+    data['status_maybe'] = np.zeros(1)
+    data['status_bad'] = np.zeros(1)
+    data.loc[data.detailed_status.isin(good),'status_good'] =1
+    data.loc[data.detailed_status.isin(maybe),'status_maybe'] =1
+    data.loc[data.detailed_status.isin(bad),'status_bad'] =1
 
 
     # Step4: add time features
-    df['dayofweek'] = df.time_bin.dt.dayofweek
-    df['hour'] = df.time_bin.dt.hour
-
-
-    # In[32]:
+    data['dayofweek'] = data.time_bin.dt.dayofweek
+    data['hour'] = data.time_bin.dt.hour
 
 
     # Step5: select final features. Note: the order is important.
-    model_input = df[['current_popularity', 'wind_speed', 'temp', 'status_good', 
-                        'status_maybe', 'status_bad', 'dayofweek', 'hour']]
+    model_input = data[['current_popularity', 'wind_speed', 'temp', 'status_good', 
+                        'status_maybe', 'status_bad', 'dayofweek', 'hour']].values
 
     return model_input
 
 
 if __name__ == '__main__':
-    load_newest_observation()
+    load_obs_for_pred()
