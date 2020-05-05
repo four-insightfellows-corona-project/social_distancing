@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from io import StringIO
 import numpy as np
  
-bucket_name = "prospectparkmodel/data"
+bucket_name = "prospectparkmodel"
 
 
 
@@ -55,12 +55,12 @@ def load_newest_observation():
 
     # read in the weather data
     df = pd.DataFrame()
-    weather_data = client.get_object(Bucket =bucket_name, Key='current_weather.csv')['Body']
+    weather_data = client.get_object(Bucket =bucket_name, Key='data/current_weather.csv')['Body']
     weather_string = weather_data.read().decode('utf-8')
     df = pd.read_csv(StringIO(weather_string))
 
     # add "current_popularity"
-    popularity_data = client.get_object(Bucket =bucket_name, Key='current_weather.csv')['Body']
+    popularity_data = client.get_object(Bucket =bucket_name, Key='data/current_weather.csv')['Body']
     popularity_string = popularity_data.read().decode('utf-8')
     df['current_popularity'] = pd.read_csv(StringIO(popularity_string))['current_pop']
 
@@ -107,4 +107,4 @@ def load_newest_observation():
 
 
 if __name__ == '__main__':
-    load_obs_for_pred()
+    load_newest_observation()
