@@ -57,9 +57,12 @@ def display_recommendation(model):
         
     st.markdown(ans)
     st.image(image)
-    st.markdown("Please Note:  \n 1. This recommendation is for " 
-                + dt.datetime.now(timezone('US/Eastern')).strftime("%-I:%M %p") + 
-                ". Please refresh the page for an updated recommendation.  \n 2. Our calculations are intended to produce reliable recommendations for times between 7am and 8pm.")
+    
+    # Quick Fix for time warning: 
+    #st.markdown("Please Note:  \n 1. This recommendation is for " 
+    #            + dt.datetime.now(timezone('US/Eastern')).strftime("%-I:%M %p") + 
+    #            ". Please refresh the page for an updated recommendation.  \n 2. Our calculations are intended to produce reliable recommendations for times between 7am and 8pm.")
+    st.markdown("Please Note: Our calculations are intended to produce reliable recommendations for times between 7am and 8pm.")
     return num_ans
 
 # Set model = logistic for final recommendation & display
