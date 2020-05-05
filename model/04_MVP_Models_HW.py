@@ -188,36 +188,3 @@ sorted(list(zip(X.columns,rfc.feature_importances_)), key = lambda x: x[1],rever
 # Not bad. Save
 pickle.dump(rfc, open(os. getcwd()[:-9] +'Model/rfc_HW.pkl', 'wb'))
 
-
-# ## RFC and upsampling
-
-# In[21]:
-
-
-rfc_up = RandomForestClassifier(random_state=0).fit(X_train_up, y_train_up)
-
-
-# In[22]:
-
-
-predictions_rfc_up = rfc.predict(X_test_up)
-# print(classification_report(y_test_up,predictions_rfc_up))
-
-
-# In[23]:
-
-
-roc_auc(rfc_up,'rfc_up', X_test_up, y_test_up)
-
-
-# In[24]:
-
-
-sorted(list(zip(X.columns,rfc_up.feature_importances_)), key = lambda x: x[1],reverse=True) 
-
-
-# In[25]:
-
-
-pickle.dump(rfc_up, open(os. getcwd()[:-9] +'Model/rfc_up_HW.pkl', 'wb'))
-
