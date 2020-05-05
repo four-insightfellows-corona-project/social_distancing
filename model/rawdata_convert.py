@@ -110,3 +110,4 @@ def load_newest_observation():
 
 if __name__ == '__main__':
     load_newest_observation()
+
