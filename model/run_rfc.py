@@ -2,6 +2,7 @@ import pickle
 from rawdata_convert import load_newest_observation
 # from d01_data.get_data import current
 import boto3
+import datetime
 
 bucket_name = "prospectparkmodel"
 
@@ -24,8 +25,14 @@ def run_prediction():
     test_row = data.iloc[-1].values
     test_row = test_row.reshape(1, -1)
     pred_test = loaded_model.predict(test_row)
-    output_content = str(pred_test[0])
+    output_pred = str(pred_test[0])
+    
+    # Create date of prediction:
+    now = datetime.datetime.now()
+    output_time = now.strftime("%Y-%m-%d %H:%M:%S")
+    print("Last prediction:", output_time)
 
+    output_content = output_time + " " + output_pred
     # Write prediction
 
     s3 = boto3.resource('s3')
@@ -34,8 +41,3 @@ def run_prediction():
 
 
 run_prediction()
-
-
-
-
-
