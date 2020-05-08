@@ -42,6 +42,7 @@ def display_recommendation(model):
     num_ans = re.search('(\d\.\d)',prediction).group(1)
     timestamp = re.search('(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d) \d\.\d',prediction).group(1)
     timestamp = to_datetime(timestamp,utc=True).tz_convert(tz = 'US/Eastern')
+    timestamp = timestamp.strftime('%B %d %Y, at %I:%M %p')
     
     # Find the right text answer and thumbs-up or thumbs-down sign
     from PIL import Image
@@ -59,12 +60,7 @@ def display_recommendation(model):
         
     st.image(image)
     
-    months = {1:'January',2:'February',3:'March',4:'April',
-              5:'May',6:'June',7:'July',8:'August',9:'September',
-              10:'October',11:'November',12:'December'}
-    
-    st.markdown("This prediction was generated on " + months[timestamp.month] + " " +
-                str(timestamp.day) + " at " + str(timestamp.hour) + ":" + str(timestamp.minute) + ".")
+    st.markdown("This prediction was generated on " + timestamp + ".")
     
     # Quick Fix for time warning: 
     #st.markdown("Please Note:  \n 1. This recommendation is for " 
@@ -92,8 +88,7 @@ submit = st.button('Submit My Responses')
 if submit:
     import os
     import sys
-    import re
-        
+            
     # Create variables to store:
     
     # Time response was entered
