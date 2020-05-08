@@ -39,7 +39,7 @@ def pop_time():
     ]
 
     insert_user_feedback(
-        table='popular_times_test',
+        table='popular_times',
         columns=cols,
         values=vals,
         ini_section='non-social-parks-db'
