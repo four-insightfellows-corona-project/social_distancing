@@ -8,6 +8,8 @@ Created on Wed Apr 22 11:34:30 2020
 import streamlit as st
 import datetime as dt
 from pytz import timezone
+import re
+
 ## DISCLAIMER
 st.header("DISCLAIMER")
 st.markdown("This project is currently in a testing phase. Please take our recommendation with a grain of salt. We invite you to help us improve our accuracy by answering some questions below.")
@@ -29,12 +31,17 @@ st.markdown("### **Is it easy to practice social distancing in Prospect Park rig
 
 # Function that displays recommendation
 def display_recommendation(model):
+    from pandas import to_datetime
+    
     # Obtain the verdict from the most recently updated model
     f = open("../d05_reporting/prediction_"+model,"r")
     
     # Define num_ans, a (string representation) of the numerical verdict
     # 0.0 = safe, 1.0 = unsafe
-    num_ans = f.read()
+    prediction = f.read()
+    num_ans = re.search('(\d\.\d)',prediction).group(1)
+    timestamp = re.search('(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d) \d\.\d',prediction).group(1)
+    timestamp = to_datetime(timestamp,utc=True).tz_convert(tz = 'US/Eastern')
     
     # Find the right text answer and thumbs-up or thumbs-down sign
     from PIL import Image
@@ -42,14 +49,22 @@ def display_recommendation(model):
     try:
         if float(num_ans) == 0.0:
             image = Image.open('thumbsup.png')
+            
         elif float(num_ans) == 1.0:
             image = Image.open('thumbsdown.png')
         else:
-            image = Image.open('shrug.png')
+            image = Image.open('thumbsdown.png')
     except:
-        image = Image.open('shrug.png')
+        image = Image.open('thumbsdown.png')
         
     st.image(image)
+    
+    months = {1:'January',2:'February',3:'March',4:'April',
+              5:'May',6:'June',7:'July',8:'August',9:'September',
+              10:'October',11:'November',12:'December'}
+    
+    st.markdown("This prediction was generated on " + months[timestamp.month] + " " +
+                str(timestamp.day) + " at " + str(timestamp.hour) + ":" + str(timestamp.minute) + ".")
     
     # Quick Fix for time warning: 
     #st.markdown("Please Note:  \n 1. This recommendation is for " 
