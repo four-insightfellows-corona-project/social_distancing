@@ -60,7 +60,7 @@ def display_recommendation(model):
         
     st.image(image)
     
-    st.markdown("This prediction was generated on " + timestamp + ".")
+    st.markdown("*This prediction was generated on " + timestamp + ".*")
     
     # Quick Fix for time warning: 
     #st.markdown("Please Note:  \n 1. This recommendation is for " 
