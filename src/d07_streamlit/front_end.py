@@ -138,9 +138,6 @@ def show(box, boxlabel):
                 image = Image.open('../d06_visuals/' + filename)
                 st.image(image,use_column_width=True)
 
-
-st.markdown("*Coming soon!*")
-
 #current_popularity = st.checkbox("current popularity")
 #if current_popularity:
     #show(current_popularity, 'current_popularity')
@@ -156,10 +153,12 @@ st.markdown("*Coming soon!*")
     #show(weather, 'weather')
 #    st.markdown("*Coming soon!*")
 
-#geotweets = st.checkbox("geotweets")
-#if geotweets:
-#    show(geotweets,'geotweets')
-    #st.markdown("*Coming soon!*")
+geotweets = st.checkbox("geotweets")
+if geotweets:
+    show(geotweets,'geotweets')
+
+
+st.markdown("*More data categories coming soon!*")
 
 #modeling = st.checkbox("model details")
 #if modeling:
