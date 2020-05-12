@@ -125,6 +125,47 @@ if submit:
 #st.markdown('[_Click Here_](https://docs.google.com/forms/d/e/1FAIpQLSdlczlOJ0s5eM01-HqQhekwlQlbihiW8yqPtsVQbQqNsyB-JQ/viewform) _to help us collect more data!_')
 
 
+## RECENT PREDICTIONS
+st.header("Recent Predictions")
+
+# @st.cache(suppress_st_warning=True)
+from pandas import read_pickle
+from pickle import load
+from pytz import timezone
+
+# Require sklearn 0.22.1
+#import pkg_resources
+#pkg_resources.require("sklearn==0.22.1")
+
+# Load our data
+df = read_pickle("../d01_data/03_from_SQL_for_frontend_ee.pkl")
+
+# Get just the past 7 days of data
+oneweekago = (dt.datetime.now(tz=timezone('US/Eastern')) - dt.timedelta(days=7))
+df = df[df.index >= oneweekago]
+df = df.drop('datetime',axis=1)
+
+# Import our model
+rf = load(open("../d03_modeling/rfc_HW.pkl",'rb'))
+
+X = df[['current_popularity', 'wind_speed', 'temp', 
+        'status_good', 'status_maybe', 'status_bad', 
+        'dayofweek', 'hour']]
+df['prediction'] = rf.predict(X)
+
+st.dataframe(df.iloc[0:5])
+
+# ***generate heatmap of past 7 days***
+import seaborn as sns
+
+# Create a heatmap where x axis is day, 
+# y axis is time bin, and square color is prediction
+df.groupby(df.index.day)
+data = df.pivot("")
+sns.heatmap(--to-be-filledin--)
+st.pyplot((--to-be-filledin--)
+
+
 ## DATA
 st.header("Data")
 
