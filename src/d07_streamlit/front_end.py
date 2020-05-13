@@ -36,7 +36,7 @@ st.markdown("### **Is it easy to practice social distancing in Prospect Park rig
 
 # Function that displays recommendation
 def display_recommendation(model):
-    from pandas import to_datetime
+    import pandas as pd
     
     # Obtain the verdict from the most recently updated model
     f = open("../d05_reporting/prediction_"+model,"r")
@@ -46,7 +46,7 @@ def display_recommendation(model):
     prediction = f.read()
     num_ans = re.search('(\d\.\d)',prediction).group(1)
     timestamp = re.search('(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d) \d\.\d',prediction).group(1)
-    timestamp = to_datetime(timestamp,utc=True).tz_convert(tz = 'US/Eastern')
+    timestamp = pd.to_datetime(timestamp,utc=True).tz_convert(tz = 'US/Eastern')
     timestamp = timestamp.strftime('%B %d %Y, at %I:%M %p')
     
     # Find the right text answer and thumbs-up or thumbs-down sign
