@@ -10,6 +10,8 @@ import datetime as dt
 from pytz import timezone
 import re
 
+
+
 ## DISCLAIMER
 st.header("DISCLAIMER")
 st.markdown("This project is currently in a testing phase. Please take our recommendation with a grain of salt. We invite you to help us improve our accuracy by answering some questions below.")
@@ -22,11 +24,14 @@ st.markdown("This project is currently in a testing phase. Please take our recom
 
 
 
+
 ## TITLE
 st.title("Is now a good time to go to Prospect Park?")
 st.markdown("### **Is it easy to practice social distancing in Prospect Park right now?**")
 
 
+            
+            
 ## RECOMMENDATION
 
 # Function that displays recommendation
@@ -72,6 +77,8 @@ def display_recommendation(model):
 # Set model = logistic for final recommendation & display
 model=''
 num_ans = display_recommendation(model = model)
+
+
 
 
 ## CORRECT US IF WE'RE WRONG
@@ -120,64 +127,111 @@ if submit:
     st.markdown("*Thank you for submitting your response! We will incorporate your feedback.*")
 
 
+
+
 ## SURVEY
 #st.header("Survey")
 #st.markdown('[_Click Here_](https://docs.google.com/forms/d/e/1FAIpQLSdlczlOJ0s5eM01-HqQhekwlQlbihiW8yqPtsVQbQqNsyB-JQ/viewform) _to help us collect more data!_')
 
 
-## RECENT PREDICTIONS
-st.header("Recent Predictions")
-
-# @st.cache(suppress_st_warning=True)
-from pandas import read_pickle
-from pickle import load
-from pytz import timezone
-
-# Require sklearn 0.22.1
-#import pkg_resources
-#pkg_resources.require("sklearn==0.22.1")
-
-# Load our data
-df = read_pickle("../d01_data/03_from_SQL_for_frontend_ee.pkl")
-
-# Get just the past 7 days of data
-oneweekago = (dt.datetime.now(tz=timezone('US/Eastern')) - dt.timedelta(days=7))
-df = df[df.index >= oneweekago]
-df = df.drop('datetime',axis=1)
-
-# Import our model
-rf = load(open("../d03_modeling/rfc_HW.pkl",'rb'))
-
-X = df[['current_popularity', 'wind_speed', 'temp', 
-        'status_good', 'status_maybe', 'status_bad', 
-        'dayofweek', 'hour']]
-df['prediction'] = rf.predict(X)
-
-st.dataframe(df.iloc[0:5])
-
-# ***generate heatmap of past 7 days***
-import seaborn as sns
-
-# Create a heatmap where x axis is day, 
-# y axis is time bin, and square color is prediction
-df.groupby(df.index.day)
-data = df.pivot("")
-sns.heatmap(--to-be-filledin--)
-st.pyplot((--to-be-filledin--)
 
 
 ## DATA
 st.header("Data")
 
-def show(box, boxlabel):
-    if box:
-        import os
-        import re
-        from PIL import Image
-        for filename in os.listdir("../d06_visuals/"):
-            if re.match(boxlabel+'.*\.png', filename):
-                image = Image.open('../d06_visuals/' + filename)
-                st.image(image,use_column_width=True)
+# RECENT PREDICTIONS
+recent_predictions = st.checkbox("recent predictions")
+if recent_predictions:
+
+    st.header("Recent Predictions")
+    # @st.cache(suppress_st_warning=True)
+    from pandas import read_pickle
+    from pickle import load
+    from pytz import timezone
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    
+    # Require sklearn 0.22.1
+    #import pkg_resources
+    #pkg_resources.require("sklearn==0.22.1")
+    
+    # Load our data
+    df = read_pickle("../d01_data/03_SQL_data_for_frontend_ee.pkl")
+    
+    # Filter df so that it's just the past 7 days
+    oneweekago = (dt.datetime.now(tz=timezone('US/Eastern')) - dt.timedelta(days=7))
+    df = df[(df.time_bin >= oneweekago) & (df.hour >= 7) & (df.hour <= 19)]
+    
+    # Reset the index
+    df = df.reset_index(drop = True)
+    
+    # Import model & add predictions 
+    # Import our model
+    rf = load(open("../d03_modeling/rfc_HW_23.pkl",'rb'))
+    
+    # Define input to model
+    X = df.drop('time_bin',axis=1)
+    
+    # Add predictions & predicted probability of UNSAFE to df
+    df['prediction'] = rf.predict(X)
+    probs = pd.DataFrame(rf.predict_proba(X), columns=rf.classes_)
+    probs.columns = ['prob_safe','prob_unsafe']
+    df['prob_unsafe'] = probs.prob_unsafe
+    
+    # Create a specialized dataframe for our heatmap
+    # Create day column
+    df['day'] = df.time_bin.apply(lambda x: x.day)
+    
+    # Create timebins that are same across different days
+    df['daily_bin'] = df.time_bin.apply(lambda x: str(x.hour).zfill(2) + ":" + str(x.minute).zfill(2))
+    
+    # Order the timebins in order
+    bins = []
+    for i in range(0,21):
+        for j in range(5, 60, 15):
+            bins.append(str(i).zfill(2)+":"+str(j).zfill(2))
+    
+    daily_bin = pd.Categorical(df.daily_bin, categories=bins, ordered=True)
+    
+    # Add ordered categorical variable for timebin that applies across
+    # different days
+    df['daily_bin'] = daily_bin
+    
+    # Create a set of readable labels for each day
+    xlabels = pd.unique(df.time_bin.apply(lambda x: x.strftime("%Y-%m-%d")))
+    
+    # Create specialized dataframe that we will use to generate our heatmap
+    for_map = df.pivot_table(index='day', columns='daily_bin', values='prob_unsafe')
+    
+    # Generate heatmap
+    # Set dimensions for our heatmap
+    fig_dims = (20, 3)
+    fig, ax = plt.subplots(figsize=fig_dims)
+    
+    # Initialize heatmap
+    htmap = sns.heatmap(for_map, annot=True, fmt=".1f",
+                        ax=ax, cbar_kws={'label': 'probability that it\'s UNSAFE'},
+                       cmap = sns.cm.rocket_r)
+    htmap.set(yticklabels=xlabels)
+    plt.xticks(rotation=90)
+    plt.yticks(rotation=0)
+    plt.xlabel("time of day")
+    plt.tight_layout()
+    plt.savefig("../d06_visuals/heatmap_horizontal.png")
+    st.pyplot()
+    
+    
+    # Other data
+    def show(box, boxlabel):
+        if box:
+            import os
+            import re
+            from PIL import Image
+            for filename in os.listdir("../d06_visuals/"):
+                if re.match(boxlabel+'.*\.png', filename):
+                    image = Image.open('../d06_visuals/' + filename)
+                    st.image(image,use_column_width=True)
 
 #current_popularity = st.checkbox("current popularity")
 #if current_popularity:
@@ -197,7 +251,6 @@ def show(box, boxlabel):
 geotweets = st.checkbox("geotweets")
 if geotweets:
     show(geotweets,'geotweets')
-
 
 st.markdown("*More data categories coming soon!*")
 

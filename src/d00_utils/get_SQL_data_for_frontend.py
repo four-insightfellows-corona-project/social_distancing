@@ -31,22 +31,35 @@ from d00_utils.db_funcs import db_to_df
 def main():
     
     ## Import our most recently updated raw data from SQL
-    df = db_to_df(sql="SELECT * FROM weather",ini_section='non-social-parks-db')
-    poptimes = db_to_df(sql="SELECT * FROM popular_times",ini_section='non-social-parks-db')
+    raw_weather = db_to_df(sql="SELECT * FROM weather",ini_section='non-social-parks-db')
+    raw_poptimes = db_to_df(sql="SELECT * FROM popular_times",ini_section='non-social-parks-db')
     
+    # To save raw data
+    # raw_weather.to_pickle("../d01_data/raw_weather.pkl")
+    # raw_poptimes.to_pickle("../d01_data/raw_poptimes.pkl")
     
     ## Process the data in the ways we did before fitting the model
-    df['current_popularity'] = poptimes['current_pop']
+    # Define a useful utility: 
+    def convert_time_and_bin(dframe, time_col):
+        # Convert time to datetime and bin the time into a time_bin 
+        dframe['datetime'] = dframe[time_col].apply(lambda x: dt.datetime.fromtimestamp(x))
+        dframe = dframe.set_index('datetime')
+        dframe = dframe.tz_localize('US/Eastern')
+        dframe = dframe.reset_index()
+        
+        # bin the time
+        dframe['time_bin'] = dframe['datetime'].apply(lambda x: x.replace(minute = 0, second = 0) + dt.timedelta(minutes=binMinute(x.minute)))
+        
+        return dframe
     
-    # Convert time to datetime and bin the time into a time_bin 
-    df['datetime'] = df.reference_time.apply(lambda x: dt.datetime.fromtimestamp(x))
-    df = df.set_index('datetime',drop=False)
-    df = df.tz_localize('US/Eastern')
+    # Apply to raw_weather & raw_poptimes; convert time to datetime & create time_bin column
+    raw_weather = convert_time_and_bin(raw_weather, 'reference_time')
+    raw_poptimes = convert_time_and_bin(raw_poptimes, 'local_time')
     
-    # bin the time
-    df['time_bin'] = df['datetime'].apply(lambda x: x.replace(minute = 0, second = 0) + dt.timedelta(minutes=binMinute(x.minute)))
+    # Join our raw dataframes on time_bin
+    df = raw_weather.join(raw_poptimes[['current_pop','time_bin']].set_index('time_bin'),on = 'time_bin')    
     
-    # create good, maybe, bad
+    # create good, maybe, bad weather columns
     good = ['clear sky','few clouds']
     maybe = ['scattered clouds','mist','light rain','broken clouds']
     bad = ['heavy intensity rain','moderate rain','overcast clouds','thunderstorm with rain','thunderstorm with light rain']
@@ -60,12 +73,25 @@ def main():
     # add time features
     df['dayofweek'] = df.time_bin.dt.dayofweek
     df['hour'] = df.time_bin.dt.hour
-    
+        
     # select final features. Note: the order is important.
-    df = df[['datetime','time_bin','current_popularity', 'wind_speed', 'temp', 'status_good', 
-                            'status_maybe', 'status_bad', 'dayofweek', 'hour']]
+    df = df[['time_bin','current_pop', 'wind_speed', 'temp', 'status_good', 
+             'status_maybe', 'status_bad', 'dayofweek', 'hour']]
     
-    df.to_pickle("../d01_data/03_from_SQL_for_frontend_ee.pkl")
+    # Drop NAs so we can apply our classifier
+    # Note: this is entirely ok to do because we are not training 
+    # our model on this data. The model has been trained already.
+    df = df.dropna(axis=0)
+    
+    # Aggregate within time bins, erring toward values that lead to a cautious recommendation ("unsafe")
+    df = df.groupby('time_bin').agg({'current_pop':'mean', 'wind_speed':'mean', 'temp':'mean',
+                                 'status_good':'max', 'status_maybe':'min', 'status_bad':'min',
+                                 'dayofweek':'mean', 'hour':'mean'})
+    # Reset index
+    df = df.reset_index()
+    
+    # Save result 
+    df.to_pickle("../d01_data/03_SQL_data_for_frontend_ee.pkl")
 
 if __name__ == "__main__":
     main()
