@@ -222,16 +222,16 @@ if recent_predictions:
     st.pyplot()
     
     
-    # Other data
-    def show(box, boxlabel):
-        if box:
-            import os
-            import re
-            from PIL import Image
-            for filename in os.listdir("../d06_visuals/"):
-                if re.match(boxlabel+'.*\.png', filename):
-                    image = Image.open('../d06_visuals/' + filename)
-                    st.image(image,use_column_width=True)
+# Other data
+def show(box, boxlabel):
+    if box:
+        import os
+        import re
+        from PIL import Image
+        for filename in os.listdir("../d06_visuals/"):
+            if re.match(boxlabel+'.*\.png', filename):
+                image = Image.open('../d06_visuals/' + filename)
+                st.image(image,use_column_width=True)
 
 #current_popularity = st.checkbox("current popularity")
 #if current_popularity:
