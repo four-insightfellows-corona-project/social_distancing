@@ -2,21 +2,21 @@
 
 # Social Distancing @ Prospect Park, Brooklyn NY
 
-> Predict the current suitability to exercise on the main path of Prospect Park, while observing social distancing
+> Predict the current suitability to exercise in the Prospect Park, while observing social distancing
 
 > The product: http://not-so-social-parks.space/
 
-> This project was born in the mid of Covid-19 to help Brooklynites identify safe times to workout in Prospect Park
+> This project was born in the mid of Covid-19, to help Brooklynites identify safe times to workout on the main path of the Prospect Park, between 7am and 8pm 
 
 ## Project Rationale 
 ### Data
-- Predictions are based on features extracted from weather data, Google's Popular Times data and local time 
+- The model makes predictions with features extracted from weather data, Google's Popular Times data and local time 
 - To generate labeled data for training our first model, we additionally collected geo-tagged tweets, photographs of the park, and survey responses from running clubs and social media groups 
-- We are constantly collecting user feedback on our predictions through the survey hosted on our frontend 
+- We are constantly collecting user feedback on our predictions through the survey hosted on our front end 
 
 ### Model
 - The first model was a random forest classifier trained on a small labeled dataset (515 data points) collected between March 23rd and April 26th, 2020 
-- After the release of the first model, we are monitoring and updating its performance based on user feedback 
+- After the release of the first model, we are monitoring and updating its performance with user feedback 
 
 ### Pipeline
 
