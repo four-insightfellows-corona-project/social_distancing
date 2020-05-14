@@ -36,7 +36,7 @@ st.markdown("### **Is it easy to practice social distancing in Prospect Park rig
 
 # Function that displays recommendation
 def display_recommendation(model):
-    import pandas as pd
+    from pandas import to_datetime
     
     # Obtain the verdict from the most recently updated model
     f = open("../d05_reporting/prediction_"+model,"r")
@@ -46,7 +46,7 @@ def display_recommendation(model):
     prediction = f.read()
     num_ans = re.search('(\d\.\d)',prediction).group(1)
     timestamp = re.search('(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d) \d\.\d',prediction).group(1)
-    timestamp = pd.to_datetime(timestamp,utc=True).tz_convert(tz = 'US/Eastern')
+    timestamp = to_datetime(timestamp,utc=True).tz_convert(tz = 'US/Eastern')
     timestamp = timestamp.strftime('%B %d %Y, at %I:%M %p')
     
     # Find the right text answer and thumbs-up or thumbs-down sign
@@ -199,7 +199,7 @@ if recent_predictions:
     df['daily_bin'] = daily_bin
     
     # Create a set of readable labels for each day
-    xlabels = pd.unique(df.time_bin.apply(lambda x: x.strftime("%Y-%m-%d")))
+    xlabels = pd.unique(df.time_bin.apply(lambda x: x.strftime("%A %B %d")))
     
     # Create specialized dataframe that we will use to generate our heatmap
     for_map = df.pivot_table(index='day', columns='daily_bin', values='prob_unsafe')
