@@ -19,6 +19,7 @@
 - After the release of the first model, we are monitoring and updating its performance with user feedback 
 
 ### Pipeline
+<img src="/visualizations/pipeline1.png" width="800" title="logo" alt="logo"></a>
 
 ## Team
 
