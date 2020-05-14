@@ -38,7 +38,7 @@ def main():
         values=(ins_time, ins_rec, ins_user_rec, ins_feedback),
         ini_section='non-social-parks-db')
 
-    print(db_to_df(ini_section='non-social-parks-db'))
+    print(db_to_df(sql='SELECT * FROM feedback;', ini_section='non-social-parks-db'))
 
 
 if __name__ == "__main__":

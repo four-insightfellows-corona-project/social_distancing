@@ -125,7 +125,7 @@ def db_to_df(sql='SELECT * FROM table;', ini_section='postgresql-local'):
 
         print('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
-
+               
         df = pd.io.sql.read_sql_query(sql, conn)
 
     except (Exception, psycopg2.DatabaseError) as error:
