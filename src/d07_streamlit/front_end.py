@@ -142,15 +142,12 @@ st.header("Data")
 # RECENT PREDICTIONS
 recent_predictions = st.checkbox("recent predictions")
 if recent_predictions:
-
     st.header("Recent Predictions")
     # @st.cache(suppress_st_warning=True)
     from pandas import read_pickle
     from pickle import load
     from pytz import timezone
     import pandas as pd
-    import matplotlib.pyplot as plt
-    import seaborn as sns
     
     # Require sklearn 0.22.1
     #import pkg_resources
@@ -198,28 +195,60 @@ if recent_predictions:
     # different days
     df['daily_bin'] = daily_bin
     
-    # Create a set of readable labels for each day
-    xlabels = pd.unique(df.time_bin.apply(lambda x: x.strftime("%A %B %d")))
     
-    # Create specialized dataframe that we will use to generate our heatmap
-    for_map = df.pivot_table(index='day', columns='daily_bin', values='prob_unsafe')
+    # Generate heatmap using bokeh    
+    import pandas as pd
+    from bokeh.plotting import output_file, save
+    from bokeh.models import (BasicTicker, ColorBar, ColumnDataSource,
+                              LinearColorMapper, PrintfTickFormatter,)
+    from bokeh.plotting import figure
+    from bokeh.transform import transform
+    from  bokeh.palettes import Inferno
     
-    # Generate heatmap
-    # Set dimensions for our heatmap
-    fig_dims = (20, 3)
-    fig, ax = plt.subplots(figsize=fig_dims)
+    data = df
+    data['day'] = data.time_bin.apply(lambda x: x.strftime("%A %B %d %Y"))
+    data = data.pivot_table(index = 'daily_bin', columns = 'day', values = 'prob_unsafe')
     
-    # Initialize heatmap
-    htmap = sns.heatmap(for_map, annot=True, fmt=".1f",
-                        ax=ax, cbar_kws={'label': 'probability that it\'s UNSAFE'},
-                       cmap = sns.cm.rocket_r)
-    htmap.set(yticklabels=xlabels)
-    plt.xticks(rotation=90)
-    plt.yticks(rotation=0)
-    plt.xlabel("time of day")
-    plt.tight_layout()
-    plt.savefig("../d06_visuals/heatmap_horizontal.png")
-    st.pyplot()
+    # Sort columns by increasing date
+    # First cast the colnames to datetime
+    cols_sorted = sorted([pd.to_datetime(x) for x in data.columns])
+    # Then cast the datetimes back to strings
+    cols_str = [d.strftime("%A %B %d %Y") for d in cols_sorted]    
+    data = data[cols_str]
+    
+    # reshape to 1D array or rates with a month and year for each row.
+    newdf = pd.DataFrame(data.stack(), columns=['prob_unsafe']).reset_index()
+    
+    source = ColumnDataSource(newdf)
+    
+    # this is the colormap from the original NYTimes plot
+    #colors = ["#75968f", "#a5bab7", "#c9d9d3", "#e2e2e2", "#dfccce", "#ddb7b1", "#cc7878", "#933b41", "#550b1d"]
+    mapper = LinearColorMapper(palette= Inferno[256][::-1], low=newdf.prob_unsafe.min(), high=newdf.prob_unsafe.max())
+    
+    p = figure(plot_width=1000, plot_height=300, 
+               title="Risk Level Over the Past Week    (darker = higher probability that it\'s UNSAFE)",
+               x_range=list(data.index), y_range=list(reversed(data.columns)),
+               toolbar_location="below", tools="pan,wheel_zoom,box_zoom,reset", x_axis_location="above")
+    
+    p.rect(x="daily_bin", y="day", width=1, height=1, source=source,
+           line_color=None, fill_color=transform('prob_unsafe', mapper))
+    
+    color_bar = ColorBar(color_mapper=mapper, location=(0, 0),
+                         ticker=BasicTicker(),
+                         formatter=PrintfTickFormatter(format="%.1f"))
+    
+    p.add_layout(color_bar, 'right')
+    
+    p.axis.axis_line_color = None
+    p.axis.major_tick_line_color = None
+    p.axis.major_label_text_font_size = "12px"
+    p.axis.major_label_standoff = 0
+    p.xaxis.major_label_orientation = 1.0
+    
+    output_file("../d06_visuals/heatmap.html")
+    save(p)
+    
+    st.write(p)
     
     
 # Other data
