@@ -1,0 +1,24 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+pandas = "*"
+psycopg2 = "*"
+numpy = "*"
+streamlit = "*"
+populartimes = {git = "https://github.com/m-wrzr/populartimes"}
+geojson = "*"
+pyowm = {git = "https://github.com/csparpa/pyowm.git",ref = "develop"}
+tweepy = "*"
+boto3 = "*"
+seaborn = "*"
+scikit-learn = "*"
+pytz = "*"
+bokeh = "*"
+
+[requires]
+python_version = "3.8"
