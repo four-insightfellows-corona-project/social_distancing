@@ -161,15 +161,13 @@ probs = pd.DataFrame(rf.predict_proba(X), columns=rf.classes_)
 probs.columns = ['prob_safe','prob_unsafe']
 df['prob_unsafe'] = probs.prob_unsafe
 
+# Graph the safety estimates over the past 24 hours
 # Downsample to hourly for easy interpretability
 df_hourly = df[['time_bin','prob_unsafe']]
 df_hourly = df_hourly.set_index('time_bin')
 df_hourly = df_hourly.resample('h').mean()
 df_hourly = df_hourly.reset_index()
 df_hourly['hour'] = df_hourly.time_bin.apply(lambda x: x.hour)
-
-# Filter to just the hours we guarantee
-df_hourly = df_hourly[(df_hourly.hour >= 7) & (df_hourly.hour <= 20)]
 
 # Restrict to relevant hours & past 24 hrs
 yesterday = (dt.datetime.now(tz=timezone('US/Eastern')) - dt.timedelta(days=1))
@@ -187,6 +185,9 @@ plt.savefig("../d06_visuals/risk_24hrs.png")
 st.pyplot()
 
 
+# Graph the average safety of each day-hour pair
+# Filter to just the hours we guarantee
+df_hourly = df_hourly[(df_hourly.hour >= 7) & (df_hourly.hour <= 20)]
 
 # Order the hours and weekdays in order
 hrs = []
