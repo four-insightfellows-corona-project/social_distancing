@@ -168,6 +168,8 @@ df_hourly = df_hourly.resample('h').mean()
 df_hourly = df_hourly.reset_index()
 df_hourly['hour'] = df_hourly.time_bin.apply(lambda x: x.hour)
 
+# Filter to just the hours we guarantee
+df_hourly = df_hourly[(df_hourly.hour >= 7) & (df_hourly.hour <= 20)]
 
 # Restrict to relevant hours & past 24 hrs
 yesterday = (dt.datetime.now(tz=timezone('US/Eastern')) - dt.timedelta(days=1))
@@ -188,7 +190,7 @@ st.pyplot()
 
 # Order the hours and weekdays in order
 hrs = []
-for i in range(0,21):
+for i in range(7,20):
         hrs.append(str(i).zfill(2)+":"+"00")
     
 hr = pd.Categorical(df_hourly.time_bin.apply(lambda x: x.strftime('%H:%M')), categories=hrs, ordered=True)
@@ -226,7 +228,7 @@ source = ColumnDataSource(newdf)
 
 mapper = LinearColorMapper(palette= Inferno[256][::-1], low=newdf.prob_unsafe.min(), high=newdf.prob_unsafe.max())
     
-p = figure(plot_width=1000, plot_height=300, 
+p = figure(plot_width=700, plot_height=300, 
                title="Average Risk Level for Each Day & Hour    (darker = higher probability that it\'s UNSAFE)",
                x_range=FactorRange(factors=hrs), y_range=list(reversed(data.columns)),
                toolbar_location="below", tools="pan,wheel_zoom,box_zoom,reset", x_axis_location="above")
