@@ -91,7 +91,7 @@ def main():
     df = df.reset_index()
     
     # Save result 
-    df.to_pickle("../d01_data/03_SQL_data_for_frontend_ee.pkl")
+    df.to_pickle("../d01_data/03_SQL_data_for_frontend_ee.pkl",protocol=3)
 
 if __name__ == "__main__":
     main()
