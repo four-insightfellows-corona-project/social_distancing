@@ -178,7 +178,8 @@ plt.style.use('ggplot')
 bar = plt.bar(x = df_today.time_bin, height = df_today.prob_unsafe, width = 0.01)
 plt.xlabel("Day and Hour")
 plt.ylabel("Probability that it\'s UNSAFE")
-plt.xticks(ticks = df_today.time_bin, labels=xlabels, rotation = 45, ha = 'right')
+plt.xticks(ticks = df_today.time_bin, labels=xlabels, rotation = 45, 
+	ha = 'right', fontsize=10)
 plt.title("Risk Level over the Past 24 Hours")
 plt.tight_layout()
 plt.savefig("../d06_visuals/risk_24hrs.png")
@@ -229,30 +230,30 @@ source = ColumnDataSource(newdf)
 
 mapper = LinearColorMapper(palette= Inferno[256][::-1], low=newdf.prob_unsafe.min(), high=newdf.prob_unsafe.max())
     
-p = figure(plot_width=700, plot_height=300, 
+q = figure(plot_width=700, plot_height=300, 
                title="Average Risk Level for Each Day & Hour    (darker = higher probability that it\'s UNSAFE)",
                x_range=FactorRange(factors=hrs), y_range=list(reversed(data.columns)),
                toolbar_location="below", tools="pan,wheel_zoom,box_zoom,reset", x_axis_location="above")
     
-p.rect(x="hr", y="day_name", width=1, height=1, source=source,
+q.rect(x="hr", y="day_name", width=1, height=1, source=source,
            line_color=None, fill_color=transform('prob_unsafe', mapper))
     
 color_bar = ColorBar(color_mapper=mapper, location=(0, 0),
                          ticker=BasicTicker(),
                          formatter=PrintfTickFormatter(format="%.1f"))
     
-p.add_layout(color_bar, 'right')
+q.add_layout(color_bar, 'right')
     
-p.axis.axis_line_color = None
-p.axis.major_tick_line_color = None
-p.axis.major_label_text_font_size = "12px"
-p.axis.major_label_standoff = 0
-p.xaxis.major_label_orientation = 1.0
+q.axis.axis_line_color = None
+q.axis.major_tick_line_color = None
+q.axis.major_label_text_font_size = "12px"
+q.axis.major_label_standoff = 0
+q.xaxis.major_label_orientation = 1.0
     
 output_file("../d06_visuals/heatmap_day_avgs.html")
-save(p)
+save(q)
     
-st.write(p)
+st.write(q)
 
 ## DATA
 st.header("Data")
