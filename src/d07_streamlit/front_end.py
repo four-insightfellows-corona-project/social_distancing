@@ -9,12 +9,20 @@ import streamlit as st
 import datetime as dt
 from pytz import timezone
 import re
+from PIL import Image
+import pandas as pd
+from pickle import load
+import matplotlib.pyplot as plt
 
+
+## TITLE
+st.title("Not-So-Social Parks")
+st.markdown("### *helping you exercise safely and responsibly in the age of COVID-19*")
 
 
 ## DISCLAIMER
 st.header("DISCLAIMER")
-st.markdown("This project is currently in a testing phase. Please take our recommendation with a grain of salt. We invite you to help us improve our accuracy by answering some questions below.")
+st.markdown("We are working continuously to improve this product. Help us provide more accurate results by answering some questions below. Your feedback is important!")
 
 ## DAYS SINCE LOCKDOWN
 #st.header("Days Since Lockdown Began")
@@ -23,16 +31,15 @@ st.markdown("This project is currently in a testing phase. Please take our recom
 #st.markdown(str(lockdown_days))
 
 
-
-
-## TITLE
-st.title("Is now a good time to go to Prospect Park?")
-st.markdown("### **Is it easy to practice social distancing in Prospect Park right now?**")
-
+## OPENING PHOTO
+opening_photo = Image.open('../d06_visuals/keep_far_apart.png')
+st.image(opening_photo,use_column_width=True)
 
             
             
 ## RECOMMENDATION
+st.markdown("## **Is now a good time to go to Prospect Park?**")
+st.markdown("#### *Is it easy to practice social distancing in Prospect Park right now?*")
 
 # Function that displays recommendation
 def display_recommendation(model):
@@ -50,7 +57,6 @@ def display_recommendation(model):
     timestamp = timestamp.strftime('%B %d %Y, at %I:%M %p')
     
     # Find the right text answer and thumbs-up or thumbs-down sign
-    from PIL import Image
     
     try:
         if float(num_ans) == 0.0:
@@ -65,7 +71,8 @@ def display_recommendation(model):
         
     st.image(image)
     
-    st.markdown("*This prediction was generated on " + timestamp + ".*")
+    st.markdown("*This prediction was generated on " + timestamp + ".* Please refresh the page for the most recent prediction.")
+    st.button("Refresh")
     
     # Quick Fix for time warning: 
     #st.markdown("Please Note:  \n 1. This recommendation is for " 
@@ -135,6 +142,114 @@ if submit:
 
 
 
+## SIMPLE SUMMARY GRAPHS
+
+# Load our data
+st.header("Past 24 Hours & Average Risk Levels")
+df = pd.read_pickle("../d01_data/03_SQL_data_for_frontend_ee.pkl")
+
+# Import model & add predictions 
+# Import our model
+rf = load(open("../d03_modeling/rfc_HW_23.pkl",'rb'))
+    
+# Define input to model
+X = df.drop('time_bin',axis=1)
+    
+# Add predictions & predicted probability of UNSAFE to df
+df['prediction'] = rf.predict(X)
+probs = pd.DataFrame(rf.predict_proba(X), columns=rf.classes_)
+probs.columns = ['prob_safe','prob_unsafe']
+df['prob_unsafe'] = probs.prob_unsafe
+
+# Downsample to hourly for easy interpretability
+df_hourly = df[['time_bin','prob_unsafe']]
+df_hourly = df_hourly.set_index('time_bin')
+df_hourly = df_hourly.resample('h').mean()
+df_hourly = df_hourly.reset_index()
+df_hourly['hour'] = df_hourly.time_bin.apply(lambda x: x.hour)
+
+
+# Restrict to relevant hours & past 24 hrs
+yesterday = (dt.datetime.now(tz=timezone('US/Eastern')) - dt.timedelta(days=1))
+df_today = df_hourly[df_hourly.time_bin >= yesterday]
+
+xlabels = df_today.time_bin.apply(lambda x: x.strftime("%a, %B %d, %I:00 %p"))
+plt.style.use('ggplot')
+bar = plt.bar(x = df_today.time_bin, height = df_today.prob_unsafe, width = 0.01)
+plt.xlabel("Day and Hour")
+plt.ylabel("Probability that it\'s UNSAFE")
+plt.xticks(ticks = df_today.time_bin, labels=xlabels, rotation = 45, ha = 'right')
+plt.title("Risk Level over the Past 24 Hours")
+plt.tight_layout()
+plt.savefig("../d06_visuals/risk_24hrs.png")
+st.pyplot()
+
+
+
+# Order the hours and weekdays in order
+hrs = []
+for i in range(0,21):
+        hrs.append(str(i).zfill(2)+":"+"00")
+    
+hr = pd.Categorical(df_hourly.time_bin.apply(lambda x: x.strftime('%H:%M')), categories=hrs, ordered=True)
+
+days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']    
+day_name = pd.Categorical(df_hourly.time_bin.apply(lambda x: x.strftime('%A')), categories=days, ordered=True)
+    
+# Add ordered categorical variables for hour and day that apply across
+# different days
+df_hourly['hr'] = hr
+df_hourly['day_name'] = day_name
+
+avgs = df_hourly.drop('hour',axis=1)
+avgs = avgs.groupby(['day_name','hr']).agg('mean')
+avgs = avgs.reset_index()
+
+import pandas as pd
+from bokeh.plotting import output_file, save
+from bokeh.models import (BasicTicker, ColorBar, ColumnDataSource,
+                          LinearColorMapper, PrintfTickFormatter,
+                          FactorRange,)
+from bokeh.plotting import figure
+from bokeh.transform import transform
+from bokeh.palettes import Inferno
+
+data = avgs.pivot_table(index = 'hr', columns = 'day_name', values = 'prob_unsafe')
+
+# Sort columns by increasing date
+data = data[days]
+
+
+newdf = pd.DataFrame(data.stack(), columns=['prob_unsafe']).reset_index()
+
+source = ColumnDataSource(newdf)
+
+mapper = LinearColorMapper(palette= Inferno[256][::-1], low=newdf.prob_unsafe.min(), high=newdf.prob_unsafe.max())
+    
+p = figure(plot_width=1000, plot_height=300, 
+               title="Average Risk Level for Each Day & Hour    (darker = higher probability that it\'s UNSAFE)",
+               x_range=FactorRange(factors=hrs), y_range=list(reversed(data.columns)),
+               toolbar_location="below", tools="pan,wheel_zoom,box_zoom,reset", x_axis_location="above")
+    
+p.rect(x="hr", y="day_name", width=1, height=1, source=source,
+           line_color=None, fill_color=transform('prob_unsafe', mapper))
+    
+color_bar = ColorBar(color_mapper=mapper, location=(0, 0),
+                         ticker=BasicTicker(),
+                         formatter=PrintfTickFormatter(format="%.1f"))
+    
+p.add_layout(color_bar, 'right')
+    
+p.axis.axis_line_color = None
+p.axis.major_tick_line_color = None
+p.axis.major_label_text_font_size = "12px"
+p.axis.major_label_standoff = 0
+p.xaxis.major_label_orientation = 1.0
+    
+output_file("../d06_visuals/heatmap_day_avgs.html")
+save(p)
+    
+st.write(p)
 
 ## DATA
 st.header("Data")
@@ -144,44 +259,21 @@ recent_predictions = st.checkbox("recent predictions")
 if recent_predictions:
     st.header("Recent Predictions")
     # @st.cache(suppress_st_warning=True)
-    from pandas import read_pickle
-    from pickle import load
-    from pytz import timezone
-    import pandas as pd
     
     # Require sklearn 0.22.1
     #import pkg_resources
     #pkg_resources.require("sklearn==0.22.1")
     
-    # Load our data
-    df = read_pickle("../d01_data/03_SQL_data_for_frontend_ee.pkl")
-    
     # Filter df so that it's just the past 7 days
     oneweekago = (dt.datetime.now(tz=timezone('US/Eastern')) - dt.timedelta(days=7))
-    df = df[(df.time_bin >= oneweekago) & (df.hour >= 7) & (df.hour <= 19)]
-    
-    # Reset the index
-    df = df.reset_index(drop = True)
-    
-    # Import model & add predictions 
-    # Import our model
-    rf = load(open("../d03_modeling/rfc_HW_23.pkl",'rb'))
-    
-    # Define input to model
-    X = df.drop('time_bin',axis=1)
-    
-    # Add predictions & predicted probability of UNSAFE to df
-    df['prediction'] = rf.predict(X)
-    probs = pd.DataFrame(rf.predict_proba(X), columns=rf.classes_)
-    probs.columns = ['prob_safe','prob_unsafe']
-    df['prob_unsafe'] = probs.prob_unsafe
+    df_recent = df[(df.time_bin >= oneweekago) & (df.hour >= 7) & (df.hour <= 19)]
     
     # Create a specialized dataframe for our heatmap
     # Create day column
-    df['day'] = df.time_bin.apply(lambda x: x.day)
+    df_recent['day'] = df_recent.time_bin.apply(lambda x: x.day)
     
     # Create timebins that are same across different days
-    df['daily_bin'] = df.time_bin.apply(lambda x: str(x.hour).zfill(2) + ":" + str(x.minute).zfill(2))
+    df_recent['daily_bin'] = df_recent.time_bin.apply(lambda x: str(x.hour).zfill(2) + ":" + str(x.minute).zfill(2))
     
     # Order the timebins in order
     bins = []
@@ -189,11 +281,11 @@ if recent_predictions:
         for j in range(5, 60, 15):
             bins.append(str(i).zfill(2)+":"+str(j).zfill(2))
     
-    daily_bin = pd.Categorical(df.daily_bin, categories=bins, ordered=True)
+    daily_bin = pd.Categorical(df_recent.daily_bin, categories=bins, ordered=True)
     
     # Add ordered categorical variable for timebin that applies across
     # different days
-    df['daily_bin'] = daily_bin
+    df_recent['daily_bin'] = daily_bin
     
     
     # Generate heatmap using bokeh    
@@ -203,9 +295,9 @@ if recent_predictions:
                               LinearColorMapper, PrintfTickFormatter,)
     from bokeh.plotting import figure
     from bokeh.transform import transform
-    from  bokeh.palettes import Inferno
+    from bokeh.palettes import Inferno
     
-    data = df
+    data = df_recent
     data['day'] = data.time_bin.apply(lambda x: x.strftime("%A %B %d %Y"))
     data = data.pivot_table(index = 'daily_bin', columns = 'day', values = 'prob_unsafe')
     
@@ -216,7 +308,7 @@ if recent_predictions:
     cols_str = [d.strftime("%A %B %d %Y") for d in cols_sorted]    
     data = data[cols_str]
     
-    # reshape to 1D array or rates with a month and year for each row.
+    # reshape to 1D array or rates with a day and daily_bin for each row.
     newdf = pd.DataFrame(data.stack(), columns=['prob_unsafe']).reset_index()
     
     source = ColumnDataSource(newdf)
@@ -245,7 +337,7 @@ if recent_predictions:
     p.axis.major_label_standoff = 0
     p.xaxis.major_label_orientation = 1.0
     
-    output_file("../d06_visuals/heatmap.html")
+    output_file("../d06_visuals/heatmap_recent.html")
     save(p)
     
     st.write(p)
@@ -279,9 +371,31 @@ def show(box, boxlabel):
 
 geotweets = st.checkbox("geotweets")
 if geotweets:
-    show(geotweets,'geotweets')
+    st.header("Geotweets")
+    st.markdown("To help us label our data, we collected tweets that were geo-tagged to Prospect Park. Some tweeters provide very helpful information on the state of the park.")
+    st.markdown("### *Some helpful tweets:*")
+    tweet148 = "tweet #148:\n\"Here’s what the running trail is like in the park.\nPlenty of #publicspace to keep over 2 meters distance. #coronavirus\n#COVID19 – at Prospect Park Loop\""
+    tweet151 = "tweet #151:\n\"Here’s the loop road in Prospect Park #publicspace.\nDefinitely requires agile maneuvering to maintain 2+ meters physical\ndistance. I like the challenge, keeps the act of running more alive.\""
+    tweet171 = "tweet #171:\n\"Prospect park is packed right now- not even 25% of\npeople wearing masks! What is wrong with these people – at Prospect Park\""
+    tweet184 = "tweet #184:\n\"It’s nice for one day and just look at these a**holes\nnot social distancing! Can we please just close the parks, because obviously\nBrooklyn isn’t getting the message. #stupidbrooklyn #whatcurve @Prospect Park\""
 
-st.markdown("*More data categories coming soon!*")
+    st.text(tweet148+'\n\n'+tweet151+'\n\n'+tweet171+'\n\n'+tweet184)
+
+    st.markdown("### *Visualizations:*")
+    st.markdown("To help get a sense of how often people were visiting the park at which times, we created some summary graphs of tweets from the early days of the pandemic.")
+    image1 = Image.open('../d06_visuals/geotweets_by_day.png')
+    st.image(image1,use_column_width=True)
+    image2 = Image.open('../d06_visuals/geotweets_by_hr.png')
+    st.image(image2,use_column_width=True)
+    image3 = Image.open('../d06_visuals/geotweets_by_hr_day.png')
+    st.image(image3,use_column_width=True)
+    
+    st.markdown("Twitter's API only allows you to collect tweets within a region defined by a circle. So to collect Prospect Park tweets, we tiled Prospect Park with circles.")
+    image4 = Image.open('../d06_visuals/geotweets_tweet_prospect_park_circles.png')
+    st.image(image4,use_column_width=True)
+    #show(geotweets,'geotweets')
+
+st.markdown("## *More data categories coming soon!*")
 
 #modeling = st.checkbox("model details")
 #if modeling:
