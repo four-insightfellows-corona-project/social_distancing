@@ -14,32 +14,14 @@ import pandas as pd
 from pickle import load
 import matplotlib.pyplot as plt
 
-
-## TITLE
-st.title("Not-So-Social Parks")
-st.markdown("### *helping you exercise safely and responsibly in the age of COVID-19*")
-
-
-## DISCLAIMER
-st.header("DISCLAIMER")
-st.markdown("We are working continuously to improve this product. Help us provide more accurate results by answering some questions below. Your feedback is important!")
-
-## DAYS SINCE LOCKDOWN
-#st.header("Days Since Lockdown Began")
-#from pandas import to_datetime
-#lockdown_days = (dt.datetime.now() - to_datetime("03-23-2020")).days
-#st.markdown(str(lockdown_days))
-
-
 ## OPENING PHOTO
-opening_photo = Image.open('../d06_visuals/keep_far_apart.png')
-st.image(opening_photo,use_column_width=True)
-
+# opening_photo = Image.open('../d06_visuals/keep_far_apart.png')
+#st.image(opening_photo,use_column_width=True)
             
             
 ## RECOMMENDATION
-st.markdown("## **Is now a good time to go to Prospect Park?**")
-st.markdown("#### *Is it easy to practice social distancing in Prospect Park right now?*")
+st.title("Is now a good time to go to Prospect Park?")
+st.markdown("### **Is it easy to practice social distancing in Prospect Park right now?**")
 
 # Function that displays recommendation
 def display_recommendation(model):
@@ -84,6 +66,18 @@ def display_recommendation(model):
 # Set model = logistic for final recommendation & display
 model=''
 num_ans = display_recommendation(model = model)
+
+
+
+## DISCLAIMER
+st.header("DISCLAIMER")
+st.markdown("We are working continuously to improve this product. Help us provide more accurate results by answering some questions below. Your feedback is important!")
+
+## DAYS SINCE LOCKDOWN
+#st.header("Days Since Lockdown Began")
+#from pandas import to_datetime
+#lockdown_days = (dt.datetime.now() - to_datetime("03-23-2020")).days
+#st.markdown(str(lockdown_days))
 
 
 
@@ -175,11 +169,11 @@ df_today = df_hourly[df_hourly.time_bin >= yesterday]
 
 xlabels = df_today.time_bin.apply(lambda x: x.strftime("%a, %B %d, %I:00 %p"))
 plt.style.use('ggplot')
-bar = plt.bar(x = df_today.time_bin, height = df_today.prob_unsafe, width = 0.01)
+bar = plt.bar(x = df_today.time_bin, height = df_today.prob_unsafe, width = 0.05)
 plt.xlabel("Day and Hour")
 plt.ylabel("Probability that it\'s UNSAFE")
 plt.xticks(ticks = df_today.time_bin, labels=xlabels, rotation = 45, 
-           ha = 'right',fontsize=10)
+           ha = 'right',fontsize=8)
 plt.title("Risk Level over the Past 24 Hours")
 plt.tight_layout()
 plt.savefig("../d06_visuals/risk_24hrs.png")
