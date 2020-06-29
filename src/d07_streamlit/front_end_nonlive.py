@@ -17,10 +17,25 @@ import matplotlib.pyplot as plt
 ## OPENING PHOTO
 # opening_photo = Image.open('../d06_visuals/keep_far_apart.png')
 #st.image(opening_photo,use_column_width=True)
-            
-            
+
+
+
+## WARNING
+st.markdown("# PLEASE NOTE:")
+st.markdown("# **We are happy to retire our app now that the situation has improved in New York.**")
+st.markdown("Our app was running live from May 15 until June 22, 2020. As of June 22, New York City entered \
+            Phase Two of reopening, and we decided that our recommendations were no longer needed at \
+            this time. Below, you will find a demonstration of what our app did while it was running, **frozen \
+            in time at 10:00am, June 21, 2020.** For more information about this project, you can also see \
+            [this](https://blog.insightdatascience.com/not-so-social-parks-predicting-suitable-times-to-visit-parks-while-observing-social-777c0be06497)\
+            blog post.")
+
+
+## FROZEN TITLE
+st.title("*Our App, Frozen in Time at 10:00am, June 21, 2020:*")
+
 ## RECOMMENDATION
-st.title("Is now a good time to go to Prospect Park?")
+st.markdown("## **Is now a good time to go to Prospect Park?**")
 st.markdown("### **Is it easy to practice social distancing in Prospect Park right now?**")
 
 # Function that displays recommendation
@@ -43,23 +58,25 @@ def display_recommendation(model):
     try:
         if float(num_ans) == 0.0:
             image = Image.open('thumbsup.png')
-            
+
         elif float(num_ans) == 1.0:
             image = Image.open('thumbsdown.png')
         else:
             image = Image.open('thumbsdown.png')
     except:
         image = Image.open('thumbsdown.png')
-        
-    st.image(image)
+
     
-    st.markdown("*This prediction was generated on " + timestamp + ".* Please refresh the page for the most recent prediction.")
+    st.image(image)
+
+
+    st.markdown("*This prediction was generated on June 21, 2020, at 10:00am.* Please refresh the page for the most recent prediction.")
     st.button("Refresh")
     
     # Quick Fix for time warning: 
     #st.markdown("Please Note:  \n 1. This recommendation is for " 
     #            + dt.datetime.now(timezone('US/Eastern')).strftime("%-I:%M %p") + 
-    #            ". Please refresh the page for an updated recommendation.  \n 2. Our calculations are intended to produce reliable recommendations for times between 7am and 8pm.")
+    #            ". Please refresh the page for an updated recommendation.  \n 2. Our calculations are intended to produce reliable recommendations for times between 7am and 8p$
     st.markdown("**Please Note:** Our calculations are intended to produce reliable recommendations for times between **7am and 8pm**.")
     return num_ans
 
@@ -80,8 +97,6 @@ st.markdown("We are working continuously to improve this product. Help us provid
 #st.markdown(str(lockdown_days))
 
 
-
-
 ## CORRECT US IF WE'RE WRONG
 # Store response submission timestamp as 'time'
 # store corrected label as 'safe'
@@ -96,7 +111,7 @@ submit = st.button('Submit My Responses')
 if submit:
     import os
     import sys
-            
+
     # Create variables to store:
     
     # Time response was entered
@@ -117,7 +132,7 @@ if submit:
     sys.path.append(root_dir)
     sys.path.append(src_dir)
     
-        
+
     from d00_utils.db_funcs import insert_user_feedback
     
     insert_user_feedback(
@@ -126,9 +141,6 @@ if submit:
         ini_section='non-social-parks-db')
     
     st.markdown("*Thank you for submitting your response! We will incorporate your feedback.*")
-
-
-
 
 ## SURVEY
 #st.header("Survey")
@@ -164,8 +176,9 @@ df_hourly = df_hourly.reset_index()
 df_hourly['hour'] = df_hourly.time_bin.apply(lambda x: x.hour)
 
 # Restrict to relevant hours & past 24 hrs
-yesterday = (dt.datetime.now(tz=timezone('US/Eastern')) - dt.timedelta(days=1))
-df_today = df_hourly[df_hourly.time_bin >= yesterday]
+yesterday = pd.to_datetime("2020-06-20 10:45:00").tz_localize("US/Eastern")
+june21 = pd.to_datetime("2020-06-21 10:45:00").tz_localize("US/Eastern")
+df_today = df_hourly[(df_hourly.time_bin >= yesterday) & (df_hourly.time_bin <= june21)]
 
 xlabels = df_today.time_bin.apply(lambda x: x.strftime("%a, %B %d, %I:00 %p"))
 plt.style.use('ggplot')
@@ -174,7 +187,7 @@ plt.xlabel("Day and Hour")
 plt.ylabel("Probability that it\'s UNSAFE")
 plt.xticks(ticks = df_today.time_bin, labels=xlabels, rotation = 45, 
            ha = 'right',fontsize=8)
-plt.title("Risk Level over the Past 24 Hours")
+plt.title("Risk Level over the Past 24 Hours (for June 21, 2020)")
 plt.tight_layout()
 plt.savefig("../d06_visuals/risk_24hrs.png")
 st.pyplot()
@@ -249,6 +262,7 @@ save(q)
     
 st.write(q)
 
+
 ## DATA
 st.header("Data")
 
@@ -263,8 +277,9 @@ if recent_predictions:
     #pkg_resources.require("sklearn==0.22.1")
     
     # Filter df so that it's just the past 7 days
-    oneweekago = (dt.datetime.now(tz=timezone('US/Eastern')) - dt.timedelta(days=7))
-    df_recent = df[(df.time_bin >= oneweekago) & (df.hour >= 7) & (df.hour <= 19)]
+    yesterday = pd.to_datetime("2020-06-20 10:45:00").tz_localize("US/Eastern")
+    oneweekago = yesterday - dt.timedelta(days=7)
+    df_recent = df[(df.time_bin >= oneweekago) & (df.time_bin <= june21) & (df.hour >= 7) & (df.hour <= 19)]
     
     # Create a specialized dataframe for our heatmap
     # Create day column
@@ -314,6 +329,7 @@ if recent_predictions:
     # this is the colormap from the original NYTimes plot
     #colors = ["#75968f", "#a5bab7", "#c9d9d3", "#e2e2e2", "#dfccce", "#ddb7b1", "#cc7878", "#933b41", "#550b1d"]
     mapper = LinearColorMapper(palette= Inferno[256][::-1], low=newdf.prob_unsafe.min(), high=newdf.prob_unsafe.max())
+
     
     p = figure(plot_width=1000, plot_height=300, 
                title="Risk Level Over the Past Week    (darker = higher probability that it\'s UNSAFE)",
@@ -339,8 +355,8 @@ if recent_predictions:
     save(p)
     
     st.write(p)
-    
-    
+
+
 # Other data
 def show(box, boxlabel):
     if box:
@@ -370,12 +386,19 @@ def show(box, boxlabel):
 geotweets = st.checkbox("geotweets")
 if geotweets:
     st.header("Geotweets")
-    st.markdown("To help us label our data, we collected tweets that were geo-tagged to Prospect Park. Some tweeters provide very helpful information on the state of the park.")
+    st.markdown("To help us label our data, we collected tweets that were geo-tagged to Prospect Park. \
+                Some tweeters provide very helpful information on the state of the park.")
     st.markdown("### *Some helpful tweets:*")
-    tweet148 = "tweet #148:\n\"Here’s what the running trail is like in the park.\nPlenty of #publicspace to keep over 2 meters distance. #coronavirus\n#COVID19 – at Prospect Park Loop\""
-    tweet151 = "tweet #151:\n\"Here’s the loop road in Prospect Park #publicspace.\nDefinitely requires agile maneuvering to maintain 2+ meters physical\ndistance. I like the challenge, keeps the act of running more alive.\""
-    tweet171 = "tweet #171:\n\"Prospect park is packed right now- not even 25% of\npeople wearing masks! What is wrong with these people – at Prospect Park\""
-    tweet184 = "tweet #184:\n\"It’s nice for one day and just look at these a**holes\nnot social distancing! Can we please just close the parks, because obviously\nBrooklyn isn’t getting the message. #stupidbrooklyn #whatcurve @Prospect Park\""
+    tweet148 = "tweet #148:\n\"Here’s what the running trail is like in the park.\nPlenty of #publicspace \
+    to keep over 2 meters distance. #coronavirus\n#COVID19 – at Prospect Park Loop\""
+    tweet151 = "tweet #151:\n\"Here’s the loop road in Prospect Park #publicspace.\nDefinitely requires \
+    agile maneuvering to maintain 2+ meters physical\ndistance. I like the challenge, keeps the act of \
+    running more alive.\""
+    tweet171 = "tweet #171:\n\"Prospect park is packed right now- not even 25% of\npeople wearing masks! \
+    What is wrong with these people – at Prospect Park\""
+    tweet184 = "tweet #184:\n\"It’s nice for one day and just look at these a**holes\nnot social distancing! \
+    Can we please just close the parks, because obviously\nBrooklyn isn’t getting the message. #stupidbrooklyn \
+    #whatcurve @Prospect Park\""
 
     st.text(tweet148+'\n\n'+tweet151+'\n\n'+tweet171+'\n\n'+tweet184)
 
@@ -409,8 +432,9 @@ st.markdown("## *More data categories coming soon!*")
     #elif model == 'random forest': 
     #    model = 'rf'
     #else: 
-    #    model = 'xgb'
-        
+
+   #    model = 'xgb'
+
     # Display model results
     #display_recommendation(model)
     
@@ -437,17 +461,30 @@ st.markdown("## *More data categories coming soon!*")
 
 st.sidebar.title("I want to read more!")
 st.sidebar.header("Why social distancing and Prospect Park?")
-st.sidebar.markdown("We wanted to make a tool that Brooklynites could use to identify safe times to exercise in Prospect Park, while observing social distancing. [Read more about social distancing.](https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/social-distancing.html)")
+st.sidebar.markdown("We wanted to make a tool that Brooklynites could use to identify safe \
+                    times to exercise in Prospect Park, while observing social distancing. \
+                    [Read more about social distancing.](https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/social-distancing.html)")
 
 
 st.sidebar.header("What do “thumbs up” and “thumbs down” mean?")
-st.sidebar.markdown("When we give you the \"thumbs up\" to exercise on the main path of Prospect Park, we are saying that by our model's calculations, it is possible to run, walk, or cycle on the main path while maintaining sufficient distance from others to practice social distancing effectively. A “thumbs down” means that our model suggests that now is not a good time to exercise in Prospect Park.")
+st.sidebar.markdown("When we give you the \"thumbs up\" to exercise on the main path of Prospect Park, \
+                    we are saying that by our model's calculations, it is possible to run, walk, or cycle\
+                    on the main path while maintaining sufficient distance from others to practice social \
+                    distancing effectively. A “thumbs down” means that our model suggests that now is not a \
+                    good time to exercise in Prospect Park.")
 
 st.sidebar.header("How do you generate the recommendation?")
-st.sidebar.markdown("Our recommendations are generated by applying a random forest classifier to data gathered from March 23, 2020 onward. We gathered weather data, geo-tagged tweets and tweet content, photographs of the park, Google's Popular Times data, and survey responses from running clubs and social media sites. From this data we extracted several relevant features that we used to train candidate machine learning models. Survey responses, tweets and photographs were used to create labels; predictions are made on weather, time and popular times data variables. The model is hosted on AWS.")
+st.sidebar.markdown("Our recommendations are generated by applying a random forest classifier to data \
+                    gathered from March 23, 2020 onward. We gathered weather data, geo-tagged tweets and \
+                    tweet content, photographs of the park, Google's Popular Times data, and survey responses \
+                    from running clubs and social media sites. From this data we extracted several relevant \
+                    features that we used to train candidate machine learning models. Survey responses, tweets \
+                    and photographs were used to create labels; predictions are made on weather, time and \
+                    popular times data variables. The model is hosted on AWS.")
     
 st.sidebar.header("How often does the recommendation update?")
-st.sidebar.markdown("Our back-end infrastructure collects new data every 15 minutes, and re-trains our model on the updated data once per day.")
+st.sidebar.markdown("Our back-end infrastructure collects new data every 15 minutes, and re-trains \
+                    our model on the updated data once per day.")
 
 ## GITHUB
 st.sidebar.header("Can I see your code?")
@@ -457,4 +494,4 @@ st.sidebar.markdown('[github repo](https://github.com/four-insightfellows-corona
 #import time
 #from d00_utils.st_rerun import rerun
 #time.sleep(900)
-#rerun()
+
