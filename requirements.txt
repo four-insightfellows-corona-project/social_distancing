@@ -85,7 +85,7 @@ traitlets==4.3.3
 tweepy==3.8.0
 typing-extensions==3.7.4.2
 tzlocal==2.1
-urllib3==1.25.9
+urllib3==1.26.5
 validators==0.15.0
 watchdog==0.10.2
 wcwidth==0.1.9
