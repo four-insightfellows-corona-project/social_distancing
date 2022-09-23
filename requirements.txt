@@ -53,7 +53,7 @@ Pillow==7.1.2
 populartimes @ git+https://github.com/m-wrzr/populartimes@e9e9ac48ea86449eeea143af24e590e71b0ecce9
 prometheus-client==0.7.1
 prompt-toolkit==3.0.5
-protobuf==3.12.0
+protobuf==3.18.3
 psycopg2==2.8.5
 ptyprocess==0.6.0
 pydeck==0.3.1
