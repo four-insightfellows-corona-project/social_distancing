@@ -49,7 +49,7 @@ parso==0.7.0
 pathtools==0.1.2
 pexpect==4.8.0
 pickleshare==0.7.5
-Pillow==7.1.2
+Pillow==9.3.0
 populartimes @ git+https://github.com/m-wrzr/populartimes@e9e9ac48ea86449eeea143af24e590e71b0ecce9
 prometheus-client==0.7.1
 prompt-toolkit==3.0.5
